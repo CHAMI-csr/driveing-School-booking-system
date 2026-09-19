@@ -10,6 +10,12 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -195,11 +201,13 @@ public class loging extends javax.swing.JFrame {
                     "Database Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        String encryptedPassword = hashPassword(enteredPassword);
+        System.out.println(encryptedPassword);   
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
 
         try (PreparedStatement pst = con.prepareStatement(sql)) {
             pst.setString(1, enteredUsername);
-            pst.setString(2, enteredPassword);
+            pst.setString(2, encryptedPassword);
 
             ResultSet rs = pst.executeQuery();
 
@@ -220,5 +228,22 @@ public class loging extends javax.swing.JFrame {
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private String hashPassword(String enteredPassword) {
+     try {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+        byte[] hashBytes =
+                md.digest(enteredPassword.getBytes(StandardCharsets.UTF_8));
+
+        return Base64.getEncoder().encodeToString(hashBytes);
+
+    } catch (NoSuchAlgorithmException ex) {
+        Logger.getLogger(loging.class.getName())
+              .log(Level.SEVERE, null, ex);
+    }
+
+    return "";   
     }
 }
