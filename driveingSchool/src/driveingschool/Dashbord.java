@@ -152,15 +152,20 @@ public class Dashbord extends javax.swing.JFrame {
         btnBookingManage = new javax.swing.JButton();
         btnUserManagement = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
-        jPanel3 = new javax.swing.JPanel();
-        lblUsername = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
+        panelHeaderLeft = new javax.swing.JPanel();
+        lblHeaderTitle = new javax.swing.JLabel();
+        lblHeaderSubtitle = new javax.swing.JLabel();
+        panelHeaderRight = new javax.swing.JPanel();
+        lblDate = new javax.swing.JLabel();
         lblRole = new javax.swing.JLabel();
+        lblUsername = new javax.swing.JLabel();
         Contructor = new javax.swing.JPanel();
-        Dashbord = new javax.swing.JPanel();
         Student = new javax.swing.JPanel();
         Vehicles = new javax.swing.JPanel();
         Instructors = new javax.swing.JPanel();
         Bookings = new javax.swing.JPanel();
+        Bookings_Management = new javax.swing.JPanel();
         user_Management = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -187,6 +192,62 @@ public class Dashbord extends javax.swing.JFrame {
         lblUserID = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         CheckFirstTimeLog = new javax.swing.JCheckBox();
+        Dashbord = new javax.swing.JPanel();
+        panelDashboardCenter = new javax.swing.JPanel();
+        panelTopSection = new javax.swing.JPanel();
+        panelSummaryCards = new javax.swing.JPanel();
+        panelCardStudents = new javax.swing.JPanel();
+        lblIconStudents = new javax.swing.JLabel();
+        panelCardStudentsText = new javax.swing.JPanel();
+        lblTitleStudents = new javax.swing.JLabel();
+        lblCountStudents = new javax.swing.JLabel();
+        lblTrendStudents = new javax.swing.JLabel();
+        panelCardBookings = new javax.swing.JPanel();
+        lblIconBookings = new javax.swing.JLabel();
+        panelCardBookingsText = new javax.swing.JPanel();
+        lblTitleBookings = new javax.swing.JLabel();
+        lblCountBookings = new javax.swing.JLabel();
+        lblTrendBookings = new javax.swing.JLabel();
+        panelCardInstructors = new javax.swing.JPanel();
+        lblIconInstructors = new javax.swing.JLabel();
+        panelCardInstructorsText = new javax.swing.JPanel();
+        lblTitleInstructors = new javax.swing.JLabel();
+        lblCountInstructors = new javax.swing.JLabel();
+        lblTrendInstructors = new javax.swing.JLabel();
+        panelCardVehicles = new javax.swing.JPanel();
+        lblIconVehicles = new javax.swing.JLabel();
+        panelCardVehiclesText = new javax.swing.JPanel();
+        lblTitleVehicles = new javax.swing.JLabel();
+        lblCountVehicles = new javax.swing.JLabel();
+        lblTrendVehicles = new javax.swing.JLabel();
+        panelQuickActions = new javax.swing.JPanel();
+        panelQuickHeader = new javax.swing.JPanel();
+        lblQuickTitle = new javax.swing.JLabel();
+        lblQuickSub = new javax.swing.JLabel();
+        panelQuickGrid = new javax.swing.JPanel();
+        panelActionRegister = new javax.swing.JPanel();
+        panelActionRegText = new javax.swing.JPanel();
+        lblActionRegTitle = new javax.swing.JLabel();
+        lblActionRegDesc = new javax.swing.JLabel();
+        btnActionRegister = new javax.swing.JButton();
+        panelActionBooking = new javax.swing.JPanel();
+        panelActionBkText = new javax.swing.JPanel();
+        lblActionBkTitle = new javax.swing.JLabel();
+        lblActionBkDesc = new javax.swing.JLabel();
+        btnActionBooking = new javax.swing.JButton();
+        panelActionManage = new javax.swing.JPanel();
+        panelActionMgText = new javax.swing.JPanel();
+        lblActionMgTitle = new javax.swing.JLabel();
+        lblActionMgDesc = new javax.swing.JLabel();
+        btnActionManage = new javax.swing.JButton();
+        panelRecentBookings = new javax.swing.JPanel();
+        panelRecentHeader = new javax.swing.JPanel();
+        panelRecentTitles = new javax.swing.JPanel();
+        lblRecentTitle = new javax.swing.JLabel();
+        lblRecentSub = new javax.swing.JLabel();
+        btnViewAllBookings = new javax.swing.JButton();
+        scrollRecentBookings = new javax.swing.JScrollPane();
+        tableRecentBookings = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new java.awt.GridLayout(1, 0));
@@ -197,7 +258,9 @@ public class Dashbord extends javax.swing.JFrame {
         jPanel2.setPreferredSize(new java.awt.Dimension(200, 439));
         jPanel2.setLayout(new java.awt.GridLayout(10, 1, 5, 5));
 
+        btnDashboard.setBackground(new java.awt.Color(0, 0, 0));
         btnDashboard.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDashboard.setForeground(new java.awt.Color(255, 255, 255));
         btnDashboard.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_combo_chart_32px.png"))); // NOI18N
         btnDashboard.setText("Dashboard");
         btnDashboard.setBorder(null);
@@ -206,7 +269,9 @@ public class Dashbord extends javax.swing.JFrame {
         btnDashboard.addActionListener(this::btnDashboardActionPerformed);
         jPanel2.add(btnDashboard);
 
+        btnStudent.setBackground(new java.awt.Color(0, 0, 0));
         btnStudent.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnStudent.setForeground(new java.awt.Color(255, 255, 255));
         btnStudent.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_student_male_32px.png"))); // NOI18N
         btnStudent.setText("Students");
         btnStudent.setBorder(null);
@@ -214,7 +279,9 @@ public class Dashbord extends javax.swing.JFrame {
         btnStudent.addActionListener(this::btnStudentActionPerformed);
         jPanel2.add(btnStudent);
 
+        btnInstructors.setBackground(new java.awt.Color(0, 0, 0));
         btnInstructors.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnInstructors.setForeground(new java.awt.Color(255, 255, 255));
         btnInstructors.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_personal_trainer_32px.png"))); // NOI18N
         btnInstructors.setText("Instructors");
         btnInstructors.setBorder(null);
@@ -222,7 +289,9 @@ public class Dashbord extends javax.swing.JFrame {
         btnInstructors.addActionListener(this::btnInstructorsActionPerformed);
         jPanel2.add(btnInstructors);
 
+        btnVehicle.setBackground(new java.awt.Color(0, 0, 0));
         btnVehicle.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnVehicle.setForeground(new java.awt.Color(255, 255, 255));
         btnVehicle.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_car_32px.png"))); // NOI18N
         btnVehicle.setText("Vehicles");
         btnVehicle.setBorder(null);
@@ -230,7 +299,9 @@ public class Dashbord extends javax.swing.JFrame {
         btnVehicle.addActionListener(this::btnVehicleActionPerformed);
         jPanel2.add(btnVehicle);
 
+        btnBooking.setBackground(new java.awt.Color(0, 0, 0));
         btnBooking.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnBooking.setForeground(new java.awt.Color(255, 255, 255));
         btnBooking.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_new_ticket_32px.png"))); // NOI18N
         btnBooking.setText("Bookings");
         btnBooking.setBorder(null);
@@ -238,7 +309,9 @@ public class Dashbord extends javax.swing.JFrame {
         btnBooking.addActionListener(this::btnBookingActionPerformed);
         jPanel2.add(btnBooking);
 
+        btnBookingManage.setBackground(new java.awt.Color(0, 0, 0));
         btnBookingManage.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnBookingManage.setForeground(new java.awt.Color(255, 255, 255));
         btnBookingManage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_event_management_32px.png"))); // NOI18N
         btnBookingManage.setText("Booking Manage");
         btnBookingManage.setBorder(null);
@@ -246,7 +319,9 @@ public class Dashbord extends javax.swing.JFrame {
         btnBookingManage.addActionListener(this::btnBookingManageActionPerformed);
         jPanel2.add(btnBookingManage);
 
+        btnUserManagement.setBackground(new java.awt.Color(0, 0, 0));
         btnUserManagement.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnUserManagement.setForeground(new java.awt.Color(255, 255, 255));
         btnUserManagement.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_conference_32px.png"))); // NOI18N
         btnUserManagement.setText("User Management");
         btnUserManagement.setBorder(null);
@@ -266,52 +341,48 @@ public class Dashbord extends javax.swing.JFrame {
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.LINE_START);
 
-        jPanel3.setBackground(new java.awt.Color(102, 102, 102));
-        jPanel3.setPreferredSize(new java.awt.Dimension(884, 75));
+        jPanel6.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel6.setPreferredSize(new java.awt.Dimension(884, 75));
+        jPanel6.setLayout(new java.awt.BorderLayout());
 
-        lblUsername.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lblUsername.setForeground(new java.awt.Color(255, 255, 255));
+        panelHeaderLeft.setBackground(new java.awt.Color(255, 255, 255));
+        panelHeaderLeft.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 24, 10, 10));
+        panelHeaderLeft.setLayout(new java.awt.GridLayout(2, 1));
 
-        lblRole.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        lblRole.setForeground(new java.awt.Color(255, 255, 255));
+        lblHeaderTitle.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        lblHeaderTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblHeaderTitle.setText("Dashboard");
+        panelHeaderLeft.add(lblHeaderTitle);
 
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap(897, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblUsername, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblRole, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(lblUsername, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lblRole, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(19, Short.MAX_VALUE))
-        );
+        lblHeaderSubtitle.setForeground(new java.awt.Color(100, 116, 139));
+        lblHeaderSubtitle.setText("SafeDrive Pro - Driving School Practical Booking System");
+        panelHeaderLeft.add(lblHeaderSubtitle);
 
-        jPanel1.add(jPanel3, java.awt.BorderLayout.PAGE_START);
+        jPanel6.add(panelHeaderLeft, java.awt.BorderLayout.LINE_START);
+
+        panelHeaderRight.setBackground(new java.awt.Color(255, 255, 255));
+        panelHeaderRight.setBorder(javax.swing.BorderFactory.createEmptyBorder(18, 10, 10, 24));
+        panelHeaderRight.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 16, 0));
+
+        lblDate.setForeground(new java.awt.Color(100, 116, 139));
+        lblDate.setText("Monday, 21 September 2026");
+        panelHeaderRight.add(lblDate);
+
+        lblRole.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblRole.setForeground(new java.awt.Color(37, 99, 235));
+        lblRole.setText("ADMIN");
+        panelHeaderRight.add(lblRole);
+
+        lblUsername.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblUsername.setForeground(new java.awt.Color(15, 23, 42));
+        lblUsername.setText("Admin User");
+        panelHeaderRight.add(lblUsername);
+
+        jPanel6.add(panelHeaderRight, java.awt.BorderLayout.LINE_END);
+
+        jPanel1.add(jPanel6, java.awt.BorderLayout.PAGE_START);
 
         Contructor.setLayout(new java.awt.CardLayout());
-
-        javax.swing.GroupLayout DashbordLayout = new javax.swing.GroupLayout(Dashbord);
-        Dashbord.setLayout(DashbordLayout);
-        DashbordLayout.setHorizontalGroup(
-            DashbordLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 840, Short.MAX_VALUE)
-        );
-        DashbordLayout.setVerticalGroup(
-            DashbordLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 520, Short.MAX_VALUE)
-        );
-
-        Contructor.add(Dashbord, "cardDashboard");
 
         javax.swing.GroupLayout StudentLayout = new javax.swing.GroupLayout(Student);
         Student.setLayout(StudentLayout);
@@ -321,7 +392,7 @@ public class Dashbord extends javax.swing.JFrame {
         );
         StudentLayout.setVerticalGroup(
             StudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 520, Short.MAX_VALUE)
+            .addGap(0, 521, Short.MAX_VALUE)
         );
 
         Contructor.add(Student, "cardStudents");
@@ -334,7 +405,7 @@ public class Dashbord extends javax.swing.JFrame {
         );
         VehiclesLayout.setVerticalGroup(
             VehiclesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 520, Short.MAX_VALUE)
+            .addGap(0, 521, Short.MAX_VALUE)
         );
 
         Contructor.add(Vehicles, "cardVehicles");
@@ -347,7 +418,7 @@ public class Dashbord extends javax.swing.JFrame {
         );
         InstructorsLayout.setVerticalGroup(
             InstructorsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 520, Short.MAX_VALUE)
+            .addGap(0, 521, Short.MAX_VALUE)
         );
 
         Contructor.add(Instructors, "cardInstructors");
@@ -360,10 +431,25 @@ public class Dashbord extends javax.swing.JFrame {
         );
         BookingsLayout.setVerticalGroup(
             BookingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 520, Short.MAX_VALUE)
+            .addGap(0, 521, Short.MAX_VALUE)
         );
 
         Contructor.add(Bookings, "cardBookings");
+
+        Bookings_Management.setBackground(new java.awt.Color(153, 255, 102));
+
+        javax.swing.GroupLayout Bookings_ManagementLayout = new javax.swing.GroupLayout(Bookings_Management);
+        Bookings_Management.setLayout(Bookings_ManagementLayout);
+        Bookings_ManagementLayout.setHorizontalGroup(
+            Bookings_ManagementLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 840, Short.MAX_VALUE)
+        );
+        Bookings_ManagementLayout.setVerticalGroup(
+            Bookings_ManagementLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 521, Short.MAX_VALUE)
+        );
+
+        Contructor.add(Bookings_Management, "cardBookingManagement");
 
         user_Management.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -614,6 +700,335 @@ public class Dashbord extends javax.swing.JFrame {
 
         Contructor.add(user_Management, "cardUserManagement");
 
+        Dashbord.setBackground(new java.awt.Color(248, 250, 252));
+        Dashbord.setLayout(new java.awt.BorderLayout());
+
+        panelDashboardCenter.setBackground(new java.awt.Color(248, 250, 252));
+        panelDashboardCenter.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 20, 24));
+        panelDashboardCenter.setLayout(new java.awt.BorderLayout());
+
+        panelTopSection.setBackground(new java.awt.Color(248, 250, 252));
+        panelTopSection.setLayout(new java.awt.BorderLayout());
+
+        panelSummaryCards.setBackground(new java.awt.Color(248, 250, 252));
+        panelSummaryCards.setPreferredSize(new java.awt.Dimension(800, 110));
+        panelSummaryCards.setLayout(new java.awt.GridLayout(1, 4, 16, 0));
+
+        panelCardStudents.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardStudents.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardStudents.setLayout(new java.awt.BorderLayout());
+
+        lblIconStudents.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconStudents.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_student_male_32px.png"))); // NOI18N
+        panelCardStudents.add(lblIconStudents, java.awt.BorderLayout.LINE_START);
+
+        panelCardStudentsText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardStudentsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardStudentsText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleStudents.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleStudents.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleStudents.setText("Total Students");
+        panelCardStudentsText.add(lblTitleStudents);
+
+        lblCountStudents.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountStudents.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountStudents.setText("148");
+        panelCardStudentsText.add(lblCountStudents);
+
+        lblTrendStudents.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendStudents.setForeground(new java.awt.Color(22, 163, 74));
+        lblTrendStudents.setText("+12% this month");
+        panelCardStudentsText.add(lblTrendStudents);
+
+        panelCardStudents.add(panelCardStudentsText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardStudents);
+
+        panelCardBookings.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardBookings.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardBookings.setLayout(new java.awt.BorderLayout());
+
+        lblIconBookings.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconBookings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_new_ticket_32px.png"))); // NOI18N
+        panelCardBookings.add(lblIconBookings, java.awt.BorderLayout.LINE_START);
+
+        panelCardBookingsText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardBookingsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardBookingsText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleBookings.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleBookings.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleBookings.setText("Today's Bookings");
+        panelCardBookingsText.add(lblTitleBookings);
+
+        lblCountBookings.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountBookings.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountBookings.setText("14");
+        panelCardBookingsText.add(lblCountBookings);
+
+        lblTrendBookings.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendBookings.setForeground(new java.awt.Color(13, 148, 136));
+        lblTrendBookings.setText("4 in progress");
+        panelCardBookingsText.add(lblTrendBookings);
+
+        panelCardBookings.add(panelCardBookingsText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardBookings);
+
+        panelCardInstructors.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardInstructors.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardInstructors.setLayout(new java.awt.BorderLayout());
+
+        lblIconInstructors.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconInstructors.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_personal_trainer_32px.png"))); // NOI18N
+        panelCardInstructors.add(lblIconInstructors, java.awt.BorderLayout.LINE_START);
+
+        panelCardInstructorsText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardInstructorsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardInstructorsText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleInstructors.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleInstructors.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleInstructors.setText("Total Instructors");
+        panelCardInstructorsText.add(lblTitleInstructors);
+
+        lblCountInstructors.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountInstructors.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountInstructors.setText("8");
+        panelCardInstructorsText.add(lblCountInstructors);
+
+        lblTrendInstructors.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendInstructors.setForeground(new java.awt.Color(79, 70, 229));
+        lblTrendInstructors.setText("All active on duty");
+        panelCardInstructorsText.add(lblTrendInstructors);
+
+        panelCardInstructors.add(panelCardInstructorsText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardInstructors);
+
+        panelCardVehicles.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardVehicles.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardVehicles.setLayout(new java.awt.BorderLayout());
+
+        lblIconVehicles.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconVehicles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_car_32px.png"))); // NOI18N
+        panelCardVehicles.add(lblIconVehicles, java.awt.BorderLayout.LINE_START);
+
+        panelCardVehiclesText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardVehiclesText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardVehiclesText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleVehicles.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleVehicles.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleVehicles.setText("Total Vehicles");
+        panelCardVehiclesText.add(lblTitleVehicles);
+
+        lblCountVehicles.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountVehicles.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountVehicles.setText("12");
+        panelCardVehiclesText.add(lblCountVehicles);
+
+        lblTrendVehicles.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendVehicles.setForeground(new java.awt.Color(217, 119, 6));
+        lblTrendVehicles.setText("10 ready, 2 service");
+        panelCardVehiclesText.add(lblTrendVehicles);
+
+        panelCardVehicles.add(panelCardVehiclesText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardVehicles);
+
+        panelTopSection.add(panelSummaryCards, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickActions.setBackground(new java.awt.Color(248, 250, 252));
+        panelQuickActions.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 0, 12, 0));
+        panelQuickActions.setLayout(new java.awt.BorderLayout());
+
+        panelQuickHeader.setBackground(new java.awt.Color(248, 250, 252));
+        panelQuickHeader.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 4));
+
+        lblQuickTitle.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
+        lblQuickTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblQuickTitle.setText("Quick Actions");
+        panelQuickHeader.add(lblQuickTitle);
+
+        lblQuickSub.setForeground(new java.awt.Color(100, 116, 139));
+        lblQuickSub.setText("  — Common shortcuts for daily driving school workflow");
+        panelQuickHeader.add(lblQuickSub);
+
+        panelQuickActions.add(panelQuickHeader, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.setBackground(new java.awt.Color(248, 250, 252));
+        panelQuickGrid.setPreferredSize(new java.awt.Dimension(800, 72));
+        panelQuickGrid.setLayout(new java.awt.GridLayout(1, 3, 16, 0));
+
+        panelActionRegister.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionRegister.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelActionRegister.setLayout(new java.awt.BorderLayout());
+
+        panelActionRegText.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionRegText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
+        panelActionRegText.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblActionRegTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblActionRegTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblActionRegTitle.setText("Register New Student");
+        panelActionRegText.add(lblActionRegTitle);
+
+        lblActionRegDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblActionRegDesc.setForeground(new java.awt.Color(100, 116, 139));
+        lblActionRegDesc.setText("Enroll student & licence class");
+        panelActionRegText.add(lblActionRegDesc);
+
+        panelActionRegister.add(panelActionRegText, java.awt.BorderLayout.CENTER);
+
+        btnActionRegister.setBackground(new java.awt.Color(37, 99, 235));
+        btnActionRegister.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnActionRegister.setForeground(new java.awt.Color(255, 255, 255));
+        btnActionRegister.setText("+ Register");
+        btnActionRegister.setBorder(null);
+        btnActionRegister.setFocusPainted(false);
+        btnActionRegister.setPreferredSize(new java.awt.Dimension(90, 32));
+        panelActionRegister.add(btnActionRegister, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.add(panelActionRegister);
+
+        panelActionBooking.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionBooking.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelActionBooking.setLayout(new java.awt.BorderLayout());
+
+        panelActionBkText.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionBkText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
+        panelActionBkText.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblActionBkTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblActionBkTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblActionBkTitle.setText("Create Practical Booking");
+        panelActionBkText.add(lblActionBkTitle);
+
+        lblActionBkDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblActionBkDesc.setForeground(new java.awt.Color(100, 116, 139));
+        lblActionBkDesc.setText("Schedule driving lesson/test");
+        panelActionBkText.add(lblActionBkDesc);
+
+        panelActionBooking.add(panelActionBkText, java.awt.BorderLayout.CENTER);
+
+        btnActionBooking.setBackground(new java.awt.Color(13, 148, 136));
+        btnActionBooking.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnActionBooking.setForeground(new java.awt.Color(255, 255, 255));
+        btnActionBooking.setText("+ Booking");
+        btnActionBooking.setBorder(null);
+        btnActionBooking.setFocusPainted(false);
+        btnActionBooking.setPreferredSize(new java.awt.Dimension(90, 32));
+        panelActionBooking.add(btnActionBooking, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.add(panelActionBooking);
+
+        panelActionManage.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionManage.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelActionManage.setLayout(new java.awt.BorderLayout());
+
+        panelActionMgText.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionMgText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
+        panelActionMgText.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblActionMgTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblActionMgTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblActionMgTitle.setText("Booking Management");
+        panelActionMgText.add(lblActionMgTitle);
+
+        lblActionMgDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblActionMgDesc.setForeground(new java.awt.Color(100, 116, 139));
+        lblActionMgDesc.setText("Assign instructors & slots");
+        panelActionMgText.add(lblActionMgDesc);
+
+        panelActionManage.add(panelActionMgText, java.awt.BorderLayout.CENTER);
+
+        btnActionManage.setBackground(new java.awt.Color(79, 70, 229));
+        btnActionManage.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnActionManage.setForeground(new java.awt.Color(255, 255, 255));
+        btnActionManage.setText("Manage →");
+        btnActionManage.setBorder(null);
+        btnActionManage.setFocusPainted(false);
+        btnActionManage.setPreferredSize(new java.awt.Dimension(90, 32));
+        panelActionManage.add(btnActionManage, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.add(panelActionManage);
+
+        panelQuickActions.add(panelQuickGrid, java.awt.BorderLayout.CENTER);
+
+        panelTopSection.add(panelQuickActions, java.awt.BorderLayout.CENTER);
+
+        panelDashboardCenter.add(panelTopSection, java.awt.BorderLayout.PAGE_START);
+
+        panelRecentBookings.setBackground(new java.awt.Color(248, 250, 252));
+        panelRecentBookings.setLayout(new java.awt.BorderLayout());
+
+        panelRecentHeader.setBackground(new java.awt.Color(248, 250, 252));
+        panelRecentHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 0, 8, 0));
+        panelRecentHeader.setLayout(new java.awt.BorderLayout());
+
+        panelRecentTitles.setBackground(new java.awt.Color(248, 250, 252));
+        panelRecentTitles.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblRecentTitle.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
+        lblRecentTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblRecentTitle.setText("Recent Practical Bookings");
+        panelRecentTitles.add(lblRecentTitle);
+
+        lblRecentSub.setForeground(new java.awt.Color(100, 116, 139));
+        lblRecentSub.setText("Latest student driving sessions and instructor assignments");
+        panelRecentTitles.add(lblRecentSub);
+
+        panelRecentHeader.add(panelRecentTitles, java.awt.BorderLayout.LINE_START);
+
+        btnViewAllBookings.setBackground(new java.awt.Color(241, 245, 249));
+        btnViewAllBookings.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnViewAllBookings.setForeground(new java.awt.Color(37, 99, 235));
+        btnViewAllBookings.setText("View All Bookings →");
+        btnViewAllBookings.setBorder(null);
+        btnViewAllBookings.setFocusPainted(false);
+        btnViewAllBookings.setPreferredSize(new java.awt.Dimension(150, 32));
+        panelRecentHeader.add(btnViewAllBookings, java.awt.BorderLayout.LINE_END);
+
+        panelRecentBookings.add(panelRecentHeader, java.awt.BorderLayout.PAGE_START);
+
+        scrollRecentBookings.setBackground(new java.awt.Color(255, 255, 255));
+        scrollRecentBookings.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        tableRecentBookings.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"BK-1042", "Kasun Perera", "Kamal Silva", "Toyota Vitz (CAB-1234)", "Today, 09:30 AM", "Practical Driving", "Confirmed"},
+                {"BK-1043", "Nimali Fernando", "Sunil Perera", "Nissan March (WP-5678)", "Today, 11:00 AM", "Pre-Test Practice", "In Progress"},
+                {"BK-1044", "Dinesh Jayasinghe", "Kamal Silva", "Honda Fit (CAR-9012)", "Today, 02:00 PM", "Highway Driving", "Pending"},
+                {"BK-1045", "Sanduni Wickramasinghe", "Mahinda Alwis", "Toyota Vitz (CAB-1234)", "Tomorrow, 08:30 AM", "Parallel Parking", "Confirmed"},
+                {"BK-1046", "Ruwan Tharaka", "Sunil Perera", "Suzuki Alto (KV-3456)", "Tomorrow, 10:30 AM", "Night Driving", "Pending"},
+                {"BK-1047", "Anoma Senanayake", "Mahinda Alwis", "Nissan March (WP-5678)", "Tomorrow, 01:30 PM", "Mock Driving Exam", "Confirmed"}
+            },
+            new String [] {
+                "Booking ID", "Student Name", "Instructor", "Vehicle", "Date & Time", "Lesson Type", "Status"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tableRecentBookings.setRowHeight(36);
+        tableRecentBookings.setShowGrid(false);
+        scrollRecentBookings.setViewportView(tableRecentBookings);
+
+        panelRecentBookings.add(scrollRecentBookings, java.awt.BorderLayout.CENTER);
+
+        panelDashboardCenter.add(panelRecentBookings, java.awt.BorderLayout.CENTER);
+
+        Dashbord.add(panelDashboardCenter, java.awt.BorderLayout.CENTER);
+
+        Contructor.add(Dashbord, "cardDashboard");
+
         jPanel1.add(Contructor, java.awt.BorderLayout.CENTER);
 
         getContentPane().add(jPanel1);
@@ -642,7 +1057,7 @@ public class Dashbord extends javax.swing.JFrame {
     }//GEN-LAST:event_btnBookingActionPerformed
 
     private void btnBookingManageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBookingManageActionPerformed
-        switchCard("cardBookings");
+        switchCard("cardBookingManagement");
     }//GEN-LAST:event_btnBookingManageActionPerformed
 
     private void btnUserManagementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUserManagementActionPerformed
@@ -1118,12 +1533,16 @@ public class Dashbord extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Bookings;
+    private javax.swing.JPanel Bookings_Management;
     private javax.swing.JCheckBox CheckFirstTimeLog;
     private javax.swing.JPanel Contructor;
     private javax.swing.JPanel Dashbord;
     private javax.swing.JPanel Instructors;
     private javax.swing.JPanel Student;
     private javax.swing.JPanel Vehicles;
+    private javax.swing.JButton btnActionBooking;
+    private javax.swing.JButton btnActionManage;
+    private javax.swing.JButton btnActionRegister;
     private javax.swing.JButton btnAddUser;
     private javax.swing.JButton btnBooking;
     private javax.swing.JButton btnBookingManage;
@@ -1135,6 +1554,7 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JButton btnUpdateUser;
     private javax.swing.JButton btnUserManagement;
     private javax.swing.JButton btnVehicle;
+    private javax.swing.JButton btnViewAllBookings;
     private javax.swing.JButton jButton8;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
@@ -1149,18 +1569,74 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     private javax.swing.JPasswordField jPasswordField1;
     private javax.swing.JPasswordField jPasswordField2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField4;
+    private javax.swing.JLabel lblActionBkDesc;
+    private javax.swing.JLabel lblActionBkTitle;
+    private javax.swing.JLabel lblActionMgDesc;
+    private javax.swing.JLabel lblActionMgTitle;
+    private javax.swing.JLabel lblActionRegDesc;
+    private javax.swing.JLabel lblActionRegTitle;
+    private javax.swing.JLabel lblCountBookings;
+    private javax.swing.JLabel lblCountInstructors;
+    private javax.swing.JLabel lblCountStudents;
+    private javax.swing.JLabel lblCountVehicles;
+    private javax.swing.JLabel lblDate;
+    private javax.swing.JLabel lblHeaderSubtitle;
+    private javax.swing.JLabel lblHeaderTitle;
+    private javax.swing.JLabel lblIconBookings;
+    private javax.swing.JLabel lblIconInstructors;
+    private javax.swing.JLabel lblIconStudents;
+    private javax.swing.JLabel lblIconVehicles;
+    private javax.swing.JLabel lblQuickSub;
+    private javax.swing.JLabel lblQuickTitle;
+    private javax.swing.JLabel lblRecentSub;
+    private javax.swing.JLabel lblRecentTitle;
     private javax.swing.JLabel lblRole;
+    private javax.swing.JLabel lblTitleBookings;
+    private javax.swing.JLabel lblTitleInstructors;
+    private javax.swing.JLabel lblTitleStudents;
+    private javax.swing.JLabel lblTitleVehicles;
+    private javax.swing.JLabel lblTrendBookings;
+    private javax.swing.JLabel lblTrendInstructors;
+    private javax.swing.JLabel lblTrendStudents;
+    private javax.swing.JLabel lblTrendVehicles;
     private javax.swing.JLabel lblUserID;
     private javax.swing.JLabel lblUsername;
+    private javax.swing.JPanel panelActionBkText;
+    private javax.swing.JPanel panelActionBooking;
+    private javax.swing.JPanel panelActionManage;
+    private javax.swing.JPanel panelActionMgText;
+    private javax.swing.JPanel panelActionRegText;
+    private javax.swing.JPanel panelActionRegister;
+    private javax.swing.JPanel panelCardBookings;
+    private javax.swing.JPanel panelCardBookingsText;
+    private javax.swing.JPanel panelCardInstructors;
+    private javax.swing.JPanel panelCardInstructorsText;
+    private javax.swing.JPanel panelCardStudents;
+    private javax.swing.JPanel panelCardStudentsText;
+    private javax.swing.JPanel panelCardVehicles;
+    private javax.swing.JPanel panelCardVehiclesText;
+    private javax.swing.JPanel panelDashboardCenter;
+    private javax.swing.JPanel panelHeaderLeft;
+    private javax.swing.JPanel panelHeaderRight;
+    private javax.swing.JPanel panelQuickActions;
+    private javax.swing.JPanel panelQuickGrid;
+    private javax.swing.JPanel panelQuickHeader;
+    private javax.swing.JPanel panelRecentBookings;
+    private javax.swing.JPanel panelRecentHeader;
+    private javax.swing.JPanel panelRecentTitles;
+    private javax.swing.JPanel panelSummaryCards;
+    private javax.swing.JPanel panelTopSection;
+    private javax.swing.JScrollPane scrollRecentBookings;
+    private javax.swing.JTable tableRecentBookings;
     private javax.swing.JPanel user_Management;
     // End of variables declaration//GEN-END:variables
 
