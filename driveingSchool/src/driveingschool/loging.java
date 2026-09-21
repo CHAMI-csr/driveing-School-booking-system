@@ -32,7 +32,6 @@ public class loging extends javax.swing.JFrame {
     Connection con;
 
     public loging() {
-
         initComponents();
     }
 
@@ -157,7 +156,12 @@ public class loging extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new loging().setVisible(true));
+       
+        FlatLafSetup.setup();
+
+        java.awt.EventQueue.invokeLater(() -> {
+            new loging().setVisible(true);
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -202,7 +206,7 @@ public class loging extends javax.swing.JFrame {
             return;
         }
         String encryptedPassword = hashPassword(enteredPassword);
-        System.out.println(encryptedPassword);   
+        System.out.println(encryptedPassword);
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
 
         try (PreparedStatement pst = con.prepareStatement(sql)) {
@@ -212,14 +216,20 @@ public class loging extends javax.swing.JFrame {
             ResultSet rs = pst.executeQuery();
 
             if (rs.next()) {
+                String username = rs.getString("username");
+                String role = rs.getString("role");
                 JOptionPane.showMessageDialog(this, "Login Successful! Welcome " + enteredUsername);
 
                 // Dashboard Window Open
-                // new MainDashboard().setVisible(true);
+                
+                new Dashbord(username, role).setVisible(true);
                 this.dispose();
+                // new MainDashboard().setVisible(true);
+                
+                
 
             } else {
-               
+
                 JOptionPane.showMessageDialog(this, "Invalid Username or Password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
                 txtPassword.setText("");
                 txtPassword.requestFocus();
@@ -231,19 +241,19 @@ public class loging extends javax.swing.JFrame {
     }
 
     private String hashPassword(String enteredPassword) {
-     try {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
 
-        byte[] hashBytes =
-                md.digest(enteredPassword.getBytes(StandardCharsets.UTF_8));
+            byte[] hashBytes
+                    = md.digest(enteredPassword.getBytes(StandardCharsets.UTF_8));
 
-        return Base64.getEncoder().encodeToString(hashBytes);
+            return Base64.getEncoder().encodeToString(hashBytes);
 
-    } catch (NoSuchAlgorithmException ex) {
-        Logger.getLogger(loging.class.getName())
-              .log(Level.SEVERE, null, ex);
-    }
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(loging.class.getName())
+                    .log(Level.SEVERE, null, ex);
+        }
 
-    return "";   
+        return "";
     }
 }

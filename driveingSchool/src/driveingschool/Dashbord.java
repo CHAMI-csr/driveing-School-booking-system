@@ -4,19 +4,133 @@
  */
 package driveingschool;
 
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Base64;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author chiki
  */
 public class Dashbord extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Dashbord.class.getName());
+    private String currentUsername;
+    private String currentRole;
+    private Connection con;
 
     /**
      * Creates new form Dashbord
      */
-    public Dashbord() {
+    public Dashbord(String username, String role) {
+        this.currentUsername = (username != null) ? username : "";
+        this.currentRole = (role != null) ? role : "";
         initComponents();
+        btnhide();
+        lblUsername.setText(this.currentUsername);
+        lblRole.setText(this.currentRole);
+        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        setLocationRelativeTo(null);
+        
+
+        // Show dashboard card by default
+        switchCard("cardDashboard");
+
+        // Load users from DB into table
+        loadUsers();
+    }
+
+    private void switchCard(String cardName) {
+        CardLayout cl = (CardLayout) Contructor.getLayout();
+        cl.show(Contructor, cardName);
+    }
+
+    private Connection getConnection() {
+        try {
+            if (con == null || con.isClosed()) {
+                con = DBConnection.connect();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            con = DBConnection.connect();
+        }
+        return con;
+    }
+
+    private String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hashBytes);
+        } catch (NoSuchAlgorithmException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            return "";
+        }
+    }
+
+    public String getDefaultPassword() {
+        Connection conn = getConnection();
+        if (conn != null) {
+            String sql = "SELECT default_password FROM settings LIMIT 1";
+            try (PreparedStatement pst = conn.prepareStatement(sql); ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    String def = rs.getString("default_password");
+                    if (def != null && !def.trim().isEmpty()) {
+                        return def.trim();
+                    }
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Failed to load default password from settings", ex);
+            }
+        }
+        return "1234";
+    }
+
+    private void loadUsers() {
+        DefaultTableModel dtm = (DefaultTableModel) jTable1.getModel();
+        dtm.setRowCount(0);
+        Connection conn = getConnection();
+        if (conn == null) {
+            return;
+        }
+        String sql = "SELECT user_id, username, nic, role FROM users ORDER BY user_id ASC";
+        try (PreparedStatement pst = conn.prepareStatement(sql); ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                row.add(rs.getInt("user_id"));
+                row.add(rs.getString("username"));
+                row.add(rs.getString("nic"));
+                row.add(rs.getString("role"));
+                dtm.addRow(row);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to load users: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void clearForm() {
+        lblUserID.setText("");
+        jTextField2.setText("");
+        jTextField4.setText("");
+        jPasswordField1.setText("");
+        jPasswordField2.setText("");
+        jComboBox1.setSelectedIndex(0);
+        CheckFirstTimeLog.setSelected(false);
+        jTable1.clearSelection();
     }
 
     /**
@@ -30,63 +144,951 @@ public class Dashbord extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
+        btnDashboard = new javax.swing.JButton();
+        btnStudent = new javax.swing.JButton();
+        btnInstructors = new javax.swing.JButton();
+        btnVehicle = new javax.swing.JButton();
+        btnBooking = new javax.swing.JButton();
+        btnBookingManage = new javax.swing.JButton();
+        btnUserManagement = new javax.swing.JButton();
+        jButton8 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
+        lblUsername = new javax.swing.JLabel();
+        lblRole = new javax.swing.JLabel();
+        Contructor = new javax.swing.JPanel();
+        Dashbord = new javax.swing.JPanel();
+        Student = new javax.swing.JPanel();
+        Vehicles = new javax.swing.JPanel();
+        Instructors = new javax.swing.JPanel();
+        Bookings = new javax.swing.JPanel();
+        user_Management = new javax.swing.JPanel();
+        jPanel5 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
         jPanel4 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jTextField2 = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jTextField4 = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        btnAddUser = new javax.swing.JButton();
+        btnUpdateUser = new javax.swing.JButton();
+        btnDeleteUser = new javax.swing.JButton();
+        btnClearUser = new javax.swing.JButton();
+        jPasswordField1 = new javax.swing.JPasswordField();
+        jLabel7 = new javax.swing.JLabel();
+        jPasswordField2 = new javax.swing.JPasswordField();
+        jLabel6 = new javax.swing.JLabel();
+        jComboBox1 = new javax.swing.JComboBox<>();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        lblUserID = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        CheckFirstTimeLog = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        getContentPane().setLayout(new java.awt.GridLayout());
+        getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         jPanel1.setLayout(new java.awt.BorderLayout());
 
         jPanel2.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel2.setPreferredSize(new java.awt.Dimension(159, 439));
+        jPanel2.setPreferredSize(new java.awt.Dimension(200, 439));
+        jPanel2.setLayout(new java.awt.GridLayout(10, 1, 5, 5));
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 159, Short.MAX_VALUE)
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 464, Short.MAX_VALUE)
-        );
+        btnDashboard.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDashboard.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_combo_chart_32px.png"))); // NOI18N
+        btnDashboard.setText("Dashboard");
+        btnDashboard.setBorder(null);
+        btnDashboard.setMargin(null);
+        btnDashboard.setPreferredSize(new java.awt.Dimension(150, 50));
+        btnDashboard.addActionListener(this::btnDashboardActionPerformed);
+        jPanel2.add(btnDashboard);
+
+        btnStudent.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnStudent.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_student_male_32px.png"))); // NOI18N
+        btnStudent.setText("Students");
+        btnStudent.setBorder(null);
+        btnStudent.setPreferredSize(new java.awt.Dimension(150, 50));
+        btnStudent.addActionListener(this::btnStudentActionPerformed);
+        jPanel2.add(btnStudent);
+
+        btnInstructors.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnInstructors.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_personal_trainer_32px.png"))); // NOI18N
+        btnInstructors.setText("Instructors");
+        btnInstructors.setBorder(null);
+        btnInstructors.setPreferredSize(new java.awt.Dimension(150, 50));
+        btnInstructors.addActionListener(this::btnInstructorsActionPerformed);
+        jPanel2.add(btnInstructors);
+
+        btnVehicle.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnVehicle.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_car_32px.png"))); // NOI18N
+        btnVehicle.setText("Vehicles");
+        btnVehicle.setBorder(null);
+        btnVehicle.setPreferredSize(new java.awt.Dimension(150, 50));
+        btnVehicle.addActionListener(this::btnVehicleActionPerformed);
+        jPanel2.add(btnVehicle);
+
+        btnBooking.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnBooking.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_new_ticket_32px.png"))); // NOI18N
+        btnBooking.setText("Bookings");
+        btnBooking.setBorder(null);
+        btnBooking.setPreferredSize(new java.awt.Dimension(150, 50));
+        btnBooking.addActionListener(this::btnBookingActionPerformed);
+        jPanel2.add(btnBooking);
+
+        btnBookingManage.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnBookingManage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_event_management_32px.png"))); // NOI18N
+        btnBookingManage.setText("Booking Manage");
+        btnBookingManage.setBorder(null);
+        btnBookingManage.setPreferredSize(new java.awt.Dimension(150, 50));
+        btnBookingManage.addActionListener(this::btnBookingManageActionPerformed);
+        jPanel2.add(btnBookingManage);
+
+        btnUserManagement.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnUserManagement.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_conference_32px.png"))); // NOI18N
+        btnUserManagement.setText("User Management");
+        btnUserManagement.setBorder(null);
+        btnUserManagement.setPreferredSize(new java.awt.Dimension(150, 50));
+        btnUserManagement.addActionListener(this::btnUserManagementActionPerformed);
+        jPanel2.add(btnUserManagement);
+
+        jButton8.setBackground(new java.awt.Color(255, 51, 51));
+        jButton8.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jButton8.setForeground(new java.awt.Color(255, 255, 255));
+        jButton8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Logout_32px_1.png"))); // NOI18N
+        jButton8.setText("LOG OUT");
+        jButton8.setBorder(null);
+        jButton8.setPreferredSize(new java.awt.Dimension(150, 50));
+        jButton8.addActionListener(this::jButton8ActionPerformed);
+        jPanel2.add(jButton8);
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.LINE_START);
 
         jPanel3.setBackground(new java.awt.Color(102, 102, 102));
         jPanel3.setPreferredSize(new java.awt.Dimension(884, 75));
 
+        lblUsername.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblUsername.setForeground(new java.awt.Color(255, 255, 255));
+
+        lblRole.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblRole.setForeground(new java.awt.Color(255, 255, 255));
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 884, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap(897, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblUsername, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblRole, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lblUsername, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblRole, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(19, Short.MAX_VALUE))
         );
 
         jPanel1.add(jPanel3, java.awt.BorderLayout.PAGE_START);
+
+        Contructor.setLayout(new java.awt.CardLayout());
+
+        javax.swing.GroupLayout DashbordLayout = new javax.swing.GroupLayout(Dashbord);
+        Dashbord.setLayout(DashbordLayout);
+        DashbordLayout.setHorizontalGroup(
+            DashbordLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 840, Short.MAX_VALUE)
+        );
+        DashbordLayout.setVerticalGroup(
+            DashbordLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 520, Short.MAX_VALUE)
+        );
+
+        Contructor.add(Dashbord, "cardDashboard");
+
+        javax.swing.GroupLayout StudentLayout = new javax.swing.GroupLayout(Student);
+        Student.setLayout(StudentLayout);
+        StudentLayout.setHorizontalGroup(
+            StudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 840, Short.MAX_VALUE)
+        );
+        StudentLayout.setVerticalGroup(
+            StudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 520, Short.MAX_VALUE)
+        );
+
+        Contructor.add(Student, "cardStudents");
+
+        javax.swing.GroupLayout VehiclesLayout = new javax.swing.GroupLayout(Vehicles);
+        Vehicles.setLayout(VehiclesLayout);
+        VehiclesLayout.setHorizontalGroup(
+            VehiclesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 840, Short.MAX_VALUE)
+        );
+        VehiclesLayout.setVerticalGroup(
+            VehiclesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 520, Short.MAX_VALUE)
+        );
+
+        Contructor.add(Vehicles, "cardVehicles");
+
+        javax.swing.GroupLayout InstructorsLayout = new javax.swing.GroupLayout(Instructors);
+        Instructors.setLayout(InstructorsLayout);
+        InstructorsLayout.setHorizontalGroup(
+            InstructorsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 840, Short.MAX_VALUE)
+        );
+        InstructorsLayout.setVerticalGroup(
+            InstructorsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 520, Short.MAX_VALUE)
+        );
+
+        Contructor.add(Instructors, "cardInstructors");
+
+        javax.swing.GroupLayout BookingsLayout = new javax.swing.GroupLayout(Bookings);
+        Bookings.setLayout(BookingsLayout);
+        BookingsLayout.setHorizontalGroup(
+            BookingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 840, Short.MAX_VALUE)
+        );
+        BookingsLayout.setVerticalGroup(
+            BookingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 520, Short.MAX_VALUE)
+        );
+
+        Contructor.add(Bookings, "cardBookings");
+
+        user_Management.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel5.setBackground(new java.awt.Color(0, 0, 0));
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "User_ID", "Username", "NIC", "role"
+            }
+        ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(jTable1);
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 414, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(10, Short.MAX_VALUE))
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 520, Short.MAX_VALUE)
+        );
+
+        user_Management.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 0, 430, 520));
+
+        jPanel4.setBackground(new java.awt.Color(0, 0, 0));
+
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 204));
+        jLabel1.setText("ADD USER");
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel2.setText("User ID ");
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel3.setText("Username   ");
+
+        jTextField2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+
+        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel4.setText("Password   ");
+
+        jTextField4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel5.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel5.setText("NIC ");
+
+        btnAddUser.setBackground(new java.awt.Color(102, 153, 255));
+        btnAddUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddUser.setForeground(new java.awt.Color(255, 255, 255));
+        btnAddUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Add_Male_User_Group_25px.png"))); // NOI18N
+        btnAddUser.setText(" Add User");
+        btnAddUser.addActionListener(this::btnAddUserActionPerformed);
+
+        btnUpdateUser.setBackground(new java.awt.Color(102, 153, 255));
+        btnUpdateUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnUpdateUser.setForeground(new java.awt.Color(255, 255, 255));
+        btnUpdateUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Female_User_Update_25px.png"))); // NOI18N
+        btnUpdateUser.setText("Update ");
+        btnUpdateUser.addActionListener(this::btnUpdateUserActionPerformed);
+
+        btnDeleteUser.setBackground(new java.awt.Color(204, 0, 51));
+        btnDeleteUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteUser.setForeground(new java.awt.Color(255, 255, 255));
+        btnDeleteUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Delete_25px.png"))); // NOI18N
+        btnDeleteUser.setText("Delete ");
+        btnDeleteUser.addActionListener(this::btnDeleteUserActionPerformed);
+
+        btnClearUser.setBackground(new java.awt.Color(204, 0, 51));
+        btnClearUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnClearUser.setForeground(new java.awt.Color(255, 255, 255));
+        btnClearUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_broom_25px.png"))); // NOI18N
+        btnClearUser.setText("Clear");
+        btnClearUser.addActionListener(this::btnClearUserActionPerformed);
+
+        jPasswordField1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
+        jLabel7.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel7.setText("Re-Password   ");
+
+        jPasswordField2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel6.setText("ROLE");
+
+        jComboBox1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Staff", "Admin" }));
+
+        jLabel8.setForeground(new java.awt.Color(255, 51, 51));
+        jLabel8.setText("If you leave the password field in this file blank,");
+
+        jLabel9.setForeground(new java.awt.Color(255, 51, 51));
+        jLabel9.setText(" the default password will be added automatically.");
+
+        lblUserID.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        lblUserID.setForeground(new java.awt.Color(255, 255, 255));
+
+        jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel10.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_password_25px_1.png"))); // NOI18N
+        jLabel10.setText("Change Default Password");
+        jLabel10.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jLabel10MouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jLabel10MouseEntered(evt);
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                jLabel10MouseExited(evt);
+            }
+        });
+
+        CheckFirstTimeLog.setForeground(new java.awt.Color(204, 0, 0));
+        CheckFirstTimeLog.setText("Disable First Time Login Change Password");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 725, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(40, 40, 40)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(5, 5, 5)
+                                .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPasswordField2, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(24, 24, 24)
+                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(15, 15, 15)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel8)
+                            .addComponent(jLabel9)
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(btnAddUser)
+                                    .addGroup(jPanel4Layout.createSequentialGroup()
+                                        .addComponent(btnUpdateUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(39, 39, 39)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(lblUserID, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(23, 23, 23)
+                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(6, 6, 6)))))
+                .addContainerGap(18, Short.MAX_VALUE))
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(6, 6, 6)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel10)
+                .addGap(29, 29, 29))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(CheckFirstTimeLog)
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 464, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(6, 6, 6)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel10))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(lblUserID, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 27, Short.MAX_VALUE))
+                .addGap(16, 16, 16)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(20, 20, 20)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(20, 20, 20)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPasswordField2, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(CheckFirstTimeLog)
+                .addGap(13, 13, 13)
+                .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnAddUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnUpdateUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(36, 36, 36))
         );
 
-        jPanel1.add(jPanel4, java.awt.BorderLayout.CENTER);
+        user_Management.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 420, 520));
+
+        Contructor.add(user_Management, "cardUserManagement");
+
+        jPanel1.add(Contructor, java.awt.BorderLayout.CENTER);
 
         getContentPane().add(jPanel1);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnDashboardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDashboardActionPerformed
+        switchCard("cardDashboard");
+    }//GEN-LAST:event_btnDashboardActionPerformed
+
+    private void btnStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStudentActionPerformed
+        switchCard("cardStudents");
+    }//GEN-LAST:event_btnStudentActionPerformed
+
+    private void btnInstructorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInstructorsActionPerformed
+        switchCard("cardInstructors");
+    }//GEN-LAST:event_btnInstructorsActionPerformed
+
+    private void btnVehicleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVehicleActionPerformed
+        switchCard("cardVehicles");
+    }//GEN-LAST:event_btnVehicleActionPerformed
+
+    private void btnBookingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBookingActionPerformed
+        switchCard("cardBookings");
+    }//GEN-LAST:event_btnBookingActionPerformed
+
+    private void btnBookingManageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBookingManageActionPerformed
+        switchCard("cardBookings");
+    }//GEN-LAST:event_btnBookingManageActionPerformed
+
+    private void btnUserManagementActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUserManagementActionPerformed
+        if (!currentRole.equalsIgnoreCase("Admin")) {
+            JOptionPane.showMessageDialog(this, "Access Denied! Only Administrators can access User Management.", "Access Denied", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        switchCard("cardUserManagement");
+        loadUsers();
+    }//GEN-LAST:event_btnUserManagementActionPerformed
+
+    private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
+        int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to log out?", "Confirm Logout", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            this.dispose();
+            new loging().setVisible(true);
+        }
+    }//GEN-LAST:event_jButton8ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        int selectedRow = jTable1.getSelectedRow();
+        if (selectedRow != -1) {
+            Object idObj = jTable1.getValueAt(selectedRow, 0);
+            Object userObj = jTable1.getValueAt(selectedRow, 1);
+            Object nicObj = jTable1.getValueAt(selectedRow, 2);
+            Object roleObj = jTable1.getValueAt(selectedRow, 3);
+
+            String idStr = idObj != null ? idObj.toString().trim() : "";
+            String userStr = userObj != null ? userObj.toString().trim() : "";
+            String nicStr = nicObj != null ? nicObj.toString().trim() : "";
+            String roleStr = roleObj != null ? roleObj.toString().trim() : "";
+
+            lblUserID.setText(idStr);
+            jTextField2.setText(userStr);
+            jTextField4.setText(nicStr);
+
+            if (idStr.isEmpty() || userStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please check again your selection!", "Warning", JOptionPane.WARNING_MESSAGE);
+            } else {
+                btnAddUser.setVisible(false);
+                btnUpdateUser.setVisible(true);
+                btnDeleteUser.setVisible(true);
+                btnClearUser.setVisible(true);
+            }
+
+            if (!roleStr.isEmpty()) {
+                for (int i = 0; i < jComboBox1.getItemCount(); i++) {
+                    if (jComboBox1.getItemAt(i).equalsIgnoreCase(roleStr)) {
+                        jComboBox1.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
+            jPasswordField1.setText("");
+            jPasswordField2.setText("");
+
+            // Load first_time status from DB for selected user
+            try {
+                Connection conn = getConnection();
+                if (conn != null && !idStr.isEmpty()) {
+                    String sql = "SELECT first_time FROM users WHERE user_id = ?";
+                    try (PreparedStatement pst = conn.prepareStatement(sql)) {
+                        pst.setInt(1, Integer.parseInt(idStr));
+                        try (ResultSet rs = pst.executeQuery()) {
+                            if (rs.next()) {
+                                int ft = rs.getInt("first_time");
+                                CheckFirstTimeLog.setSelected(ft == 0 && !rs.wasNull());
+                            } else {
+                                CheckFirstTimeLog.setSelected(false);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Failed to load user first_time setting", ex);
+                CheckFirstTimeLog.setSelected(false);
+            }
+        }
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnAddUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddUserActionPerformed
+        String username = jTextField2.getText().trim();
+        String nic = jTextField4.getText().trim();
+        String role = (String) jComboBox1.getSelectedItem();
+        String password = new String(jPasswordField1.getPassword()).trim();
+        String rePassword = new String(jPasswordField2.getPassword()).trim();
+
+        // 1. Username validation
+        if (username.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Username!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField2.requestFocus();
+            return;
+        }
+        if (username.length() < 3 || username.length() > 50) {
+            JOptionPane.showMessageDialog(this, "Username must be between 3 and 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField2.requestFocus();
+            return;
+        }
+        if (!username.matches("^[a-zA-Z0-9_]+$")) {
+            JOptionPane.showMessageDialog(this, "Username can only contain letters, numbers, and underscores (no spaces)!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField2.requestFocus();
+            return;
+        }
+
+        // 2. NIC validation
+        if (nic.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter NIC!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField4.requestFocus();
+            return;
+        }
+        if (!nic.matches("^([0-9]{9}[vVxX]|[0-9]{12})$")) {
+            JOptionPane.showMessageDialog(this, "Invalid NIC format!\nNIC must be either:\n- 9 digits followed by V or X (e.g., 123456789V)\n- 12 digits (e.g., 200012345678)", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField4.requestFocus();
+            return;
+        }
+
+        // 3. Role validation
+        if (role == null || role.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a Role!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jComboBox1.requestFocus();
+            return;
+        }
+
+        // 4. Password validation
+        String finalPassword;
+        String currentDefault = getDefaultPassword();
+        if (password.isEmpty()) {
+            if (!rePassword.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter Password to match confirmation password!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField1.requestFocus();
+                return;
+            }
+            finalPassword = currentDefault;
+        } else {
+            if (password.length() < 4) {
+                JOptionPane.showMessageDialog(this, "Password must be at least 4 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField1.requestFocus();
+                return;
+            }
+            if (password.length() > 50) {
+                JOptionPane.showMessageDialog(this, "Password cannot exceed 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField1.requestFocus();
+                return;
+            }
+            if (!password.equals(rePassword)) {
+                JOptionPane.showMessageDialog(this, "Passwords do not match!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField2.requestFocus();
+                return;
+            }
+            finalPassword = password;
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Check if username already exists
+        String checkSql = "SELECT user_id FROM users WHERE username = ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkSql)) {
+            checkPst.setString(1, username);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "Username '" + username + "' is already taken! Please choose another.", "Duplicate Username", JOptionPane.WARNING_MESSAGE);
+                    jTextField2.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 6. Check if NIC already exists
+        String checkNicSql = "SELECT user_id FROM users WHERE nic = ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkNicSql)) {
+            checkPst.setString(1, nic);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "NIC '" + nic + "' is already taken! Please choose another.", "Duplicate NIC", JOptionPane.WARNING_MESSAGE);
+                    jTextField4.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 7. Insert user
+        String firstTimeLog = CheckFirstTimeLog.isSelected() ? "0" : "1";
+        String hashedPassword = hashPassword(finalPassword);
+        String insertSql = "INSERT INTO users (username, nic, password, role, first_time) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement pst = conn.prepareStatement(insertSql)) {
+            pst.setString(1, username);
+            pst.setString(2, nic);
+            pst.setString(3, hashedPassword);
+            pst.setString(4, role != null ? role : "Staff");
+            pst.setString(5, firstTimeLog);
+
+            int affected = pst.executeUpdate();
+            if (affected > 0) {
+                JOptionPane.showMessageDialog(this, "User added successfully!" + (password.isEmpty() ? "\nDefault password set to: " + currentDefault : ""));
+                loadUsers();
+                clearForm();
+                btnAddUser.setVisible(true);
+                btnhide();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to add user: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnAddUserActionPerformed
+
+    private void btnUpdateUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateUserActionPerformed
+        String userIdStr = lblUserID.getText().trim();
+        if (userIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a user from the table to update!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int userId;
+        try {
+            userId = Integer.parseInt(userIdStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid User ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String username = jTextField2.getText().trim();
+        String nic = jTextField4.getText().trim();
+        String role = (String) jComboBox1.getSelectedItem();
+        String password = new String(jPasswordField1.getPassword()).trim();
+        String rePassword = new String(jPasswordField2.getPassword()).trim();
+
+        // 1. Username validation
+        if (username.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username cannot be empty!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField2.requestFocus();
+            return;
+        }
+        if (username.length() < 3 || username.length() > 50) {
+            JOptionPane.showMessageDialog(this, "Username must be between 3 and 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField2.requestFocus();
+            return;
+        }
+        if (!username.matches("^[a-zA-Z0-9_]+$")) {
+            JOptionPane.showMessageDialog(this, "Username can only contain letters, numbers, and underscores (no spaces)!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField2.requestFocus();
+            return;
+        }
+
+        // 2. NIC validation
+        if (nic.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "NIC cannot be empty!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField4.requestFocus();
+            return;
+        }
+        if (!nic.matches("^([0-9]{9}[vVxX]|[0-9]{12})$")) {
+            JOptionPane.showMessageDialog(this, "Invalid NIC format!\nNIC must be either:\n- 9 digits followed by V or X (e.g., 123456789V)\n- 12 digits (e.g., 200012345678)", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jTextField4.requestFocus();
+            return;
+        }
+
+        // 3. Role validation
+        if (role == null || role.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a Role!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            jComboBox1.requestFocus();
+            return;
+        }
+
+        // 4. Password validation (only if password or rePassword entered)
+        boolean updatePassword = !password.isEmpty() || !rePassword.isEmpty();
+        if (updatePassword) {
+            if (password.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter the new Password!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField1.requestFocus();
+                return;
+            }
+            if (password.length() < 4) {
+                JOptionPane.showMessageDialog(this, "Password must be at least 4 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField1.requestFocus();
+                return;
+            }
+            if (password.length() > 50) {
+                JOptionPane.showMessageDialog(this, "Password cannot exceed 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField1.requestFocus();
+                return;
+            }
+            if (!password.equals(rePassword)) {
+                JOptionPane.showMessageDialog(this, "Passwords do not match!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                jPasswordField2.requestFocus();
+                return;
+            }
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Check if new username is already used by another user
+        String checkSql = "SELECT user_id FROM users WHERE username = ? AND user_id != ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkSql)) {
+            checkPst.setString(1, username);
+            checkPst.setInt(2, userId);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "Username '" + username + "' is already taken by another user!", "Duplicate Username", JOptionPane.WARNING_MESSAGE);
+                    jTextField2.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 6. Check if new NIC is already used by another user
+        String checkNicSql = "SELECT user_id FROM users WHERE nic = ? AND user_id != ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkNicSql)) {
+            checkPst.setString(1, nic);
+            checkPst.setInt(2, userId);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "NIC '" + nic + "' is already registered to another user!", "Duplicate NIC", JOptionPane.WARNING_MESSAGE);
+                    jTextField4.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 7. Update user
+        String firstTimeLog = CheckFirstTimeLog.isSelected() ? "0" : "1";
+        String updateSql;
+        if (updatePassword) {
+            updateSql = "UPDATE users SET username = ?, nic = ?, password = ?, role = ?, first_time = ? WHERE user_id = ?";
+        } else {
+            updateSql = "UPDATE users SET username = ?, nic = ?, role = ?, first_time = ? WHERE user_id = ?";
+        }
+
+        try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+            pst.setString(1, username);
+            pst.setString(2, nic);
+            if (updatePassword) {
+                pst.setString(3, hashPassword(password));
+                pst.setString(4, role != null ? role : "Staff");
+                pst.setString(5, firstTimeLog);
+                pst.setInt(6, userId);
+            } else {
+                pst.setString(3, role != null ? role : "Staff");
+                pst.setString(4, firstTimeLog);
+                pst.setInt(5, userId);
+            }
+
+            int affected = pst.executeUpdate();
+            if (affected > 0) {
+                JOptionPane.showMessageDialog(this, "User updated successfully!");
+                loadUsers();
+                clearForm();
+                btnAddUser.setVisible(true);
+                btnhide();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to update user: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnUpdateUserActionPerformed
+
+    private void btnDeleteUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteUserActionPerformed
+        String userIdStr = lblUserID.getText().trim();
+        if (userIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a user from the table to delete!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int userId;
+        try {
+            userId = Integer.parseInt(userIdStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid User ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String username = jTextField2.getText().trim();
+        if (username.equalsIgnoreCase(currentUsername)) {
+            JOptionPane.showMessageDialog(this, "You cannot delete your own logged-in account!", "Operation Not Allowed", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to delete user '" + username + "' (ID: " + userId + ")?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Connection conn = getConnection();
+            if (conn == null) {
+                JOptionPane.showMessageDialog(this, "Database connection not available!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String deleteSql = "DELETE FROM users WHERE user_id = ?";
+            try (PreparedStatement pst = conn.prepareStatement(deleteSql)) {
+                pst.setInt(1, userId);
+                int affected = pst.executeUpdate();
+                if (affected > 0) {
+                    JOptionPane.showMessageDialog(this, "User deleted successfully!");
+                    loadUsers();
+                    clearForm();
+                    btnAddUser.setVisible(true);
+                    btnhide();
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Failed to delete user: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btnDeleteUserActionPerformed
+
+    private void btnClearUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearUserActionPerformed
+        btnAddUser.setVisible(true);
+        btnhide();
+        clearForm();
+    }//GEN-LAST:event_btnClearUserActionPerformed
+
+    private void jLabel10MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel10MouseClicked
+    new changeDefaultPassword(currentUsername,currentRole).setVisible(true);
+    }//GEN-LAST:event_jLabel10MouseClicked
+
+    private void jLabel10MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel10MouseEntered
+        jLabel10.setForeground(Color.blue);
+    }//GEN-LAST:event_jLabel10MouseEntered
+
+    private void jLabel10MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel10MouseExited
+       jLabel10.setForeground(Color.white); 
+    }//GEN-LAST:event_jLabel10MouseExited
 
     /**
      * @param args the command line arguments
@@ -110,13 +1112,63 @@ public class Dashbord extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new Dashbord().setVisible(true));
+        FlatLafSetup.setup();
+        java.awt.EventQueue.invokeLater(() -> new Dashbord("chamika", "Admin").setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel Bookings;
+    private javax.swing.JCheckBox CheckFirstTimeLog;
+    private javax.swing.JPanel Contructor;
+    private javax.swing.JPanel Dashbord;
+    private javax.swing.JPanel Instructors;
+    private javax.swing.JPanel Student;
+    private javax.swing.JPanel Vehicles;
+    private javax.swing.JButton btnAddUser;
+    private javax.swing.JButton btnBooking;
+    private javax.swing.JButton btnBookingManage;
+    private javax.swing.JButton btnClearUser;
+    private javax.swing.JButton btnDashboard;
+    private javax.swing.JButton btnDeleteUser;
+    private javax.swing.JButton btnInstructors;
+    private javax.swing.JButton btnStudent;
+    private javax.swing.JButton btnUpdateUser;
+    private javax.swing.JButton btnUserManagement;
+    private javax.swing.JButton btnVehicle;
+    private javax.swing.JButton jButton8;
+    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPasswordField jPasswordField1;
+    private javax.swing.JPasswordField jPasswordField2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextField4;
+    private javax.swing.JLabel lblRole;
+    private javax.swing.JLabel lblUserID;
+    private javax.swing.JLabel lblUsername;
+    private javax.swing.JPanel user_Management;
     // End of variables declaration//GEN-END:variables
+
+    private void btnhide() {
+        btnUpdateUser.setVisible(false);
+        btnDeleteUser.setVisible(false);
+        btnUpdateUser.setVisible(false);
+        btnClearUser.setVisible(false);
+
+    }
 }
