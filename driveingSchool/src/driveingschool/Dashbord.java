@@ -162,6 +162,44 @@ public class Dashbord extends javax.swing.JFrame {
         lblUsername = new javax.swing.JLabel();
         Contructor = new javax.swing.JPanel();
         Student = new javax.swing.JPanel();
+        panelStudentHeader = new javax.swing.JPanel();
+        panelStudentHeaderLeft = new javax.swing.JPanel();
+        lblStudentHeaderTitle = new javax.swing.JLabel();
+        lblStudentHeaderSub = new javax.swing.JLabel();
+        panelStudentHeaderRight = new javax.swing.JPanel();
+        txtSearchStudent = new javax.swing.JTextField();
+        btnSearchStudent = new javax.swing.JButton();
+        btnResetStudent = new javax.swing.JButton();
+        panelStudentBody = new javax.swing.JPanel();
+        panelStudentFormCard = new javax.swing.JPanel();
+        lblStudentCardTitle = new javax.swing.JLabel();
+        lblStudentCardSub = new javax.swing.JLabel();
+        lblStudentID = new javax.swing.JLabel();
+        lblStudentIDVal = new javax.swing.JLabel();
+        lblStudentName = new javax.swing.JLabel();
+        txtStudentName = new javax.swing.JTextField();
+        lblStudentNIC = new javax.swing.JLabel();
+        txtStudentNIC = new javax.swing.JTextField();
+        lblStudentPhone = new javax.swing.JLabel();
+        txtStudentPhone = new javax.swing.JTextField();
+        lblStudentAddress = new javax.swing.JLabel();
+        txtStudentAddress = new javax.swing.JTextField();
+        lblStudentClass = new javax.swing.JLabel();
+        cmbStudentClass = new javax.swing.JComboBox<>();
+        lblStudentStatus = new javax.swing.JLabel();
+        cmbStudentStatus = new javax.swing.JComboBox<>();
+        btnAddStudent = new javax.swing.JButton();
+        btnUpdateStudent = new javax.swing.JButton();
+        btnDeleteStudent = new javax.swing.JButton();
+        btnClearStudent = new javax.swing.JButton();
+        panelStudentTableCard = new javax.swing.JPanel();
+        panelStudentTableHeader = new javax.swing.JPanel();
+        lblStudentTableTitle = new javax.swing.JLabel();
+        lblStudentTableSub = new javax.swing.JLabel();
+        scrollStudentTable = new javax.swing.JScrollPane();
+        tableStudents = new javax.swing.JTable();
+        panelStudentTableFooter = new javax.swing.JPanel();
+        lblStudentCount = new javax.swing.JLabel();
         Vehicles = new javax.swing.JPanel();
         Instructors = new javax.swing.JPanel();
         Bookings = new javax.swing.JPanel();
@@ -384,16 +422,319 @@ public class Dashbord extends javax.swing.JFrame {
 
         Contructor.setLayout(new java.awt.CardLayout());
 
-        javax.swing.GroupLayout StudentLayout = new javax.swing.GroupLayout(Student);
-        Student.setLayout(StudentLayout);
-        StudentLayout.setHorizontalGroup(
-            StudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 840, Short.MAX_VALUE)
+        Student.setBackground(new java.awt.Color(248, 250, 252));
+        Student.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 20, 24));
+        Student.setLayout(new java.awt.BorderLayout(0, 14));
+
+        panelStudentHeader.setBackground(new java.awt.Color(248, 250, 252));
+        panelStudentHeader.setLayout(new java.awt.BorderLayout(16, 0));
+
+        panelStudentHeaderLeft.setBackground(new java.awt.Color(248, 250, 252));
+        panelStudentHeaderLeft.setLayout(new java.awt.GridLayout(2, 1, 0, 2));
+
+        lblStudentHeaderTitle.setFont(new java.awt.Font("Segoe UI", 1, 20)); // NOI18N
+        lblStudentHeaderTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblStudentHeaderTitle.setText("Student Management");
+        panelStudentHeaderLeft.add(lblStudentHeaderTitle);
+
+        lblStudentHeaderSub.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
+        lblStudentHeaderSub.setForeground(new java.awt.Color(100, 116, 139));
+        lblStudentHeaderSub.setText("Enroll learners, manage admission records, and track training status");
+        panelStudentHeaderLeft.add(lblStudentHeaderSub);
+
+        panelStudentHeader.add(panelStudentHeaderLeft, java.awt.BorderLayout.LINE_START);
+
+        panelStudentHeaderRight.setBackground(new java.awt.Color(248, 250, 252));
+        panelStudentHeaderRight.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 4));
+
+        txtSearchStudent.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        txtSearchStudent.putClientProperty("JTextField.placeholderText", "Search student by name or NIC...");
+        txtSearchStudent.setPreferredSize(new java.awt.Dimension(220, 34));
+        panelStudentHeaderRight.add(txtSearchStudent);
+
+        btnSearchStudent.setBackground(new java.awt.Color(37, 99, 235));
+        btnSearchStudent.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnSearchStudent.setForeground(new java.awt.Color(255, 255, 255));
+        btnSearchStudent.setText("Search");
+        btnSearchStudent.setBorder(null);
+        btnSearchStudent.setFocusPainted(false);
+        btnSearchStudent.setPreferredSize(new java.awt.Dimension(80, 34));
+        panelStudentHeaderRight.add(btnSearchStudent);
+
+        btnResetStudent.setBackground(new java.awt.Color(241, 245, 249));
+        btnResetStudent.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnResetStudent.setForeground(new java.awt.Color(37, 99, 235));
+        btnResetStudent.setText("Show All");
+        btnResetStudent.setBorder(null);
+        btnResetStudent.setFocusPainted(false);
+        btnResetStudent.setPreferredSize(new java.awt.Dimension(85, 34));
+        btnResetStudent.addActionListener(this::btnResetStudentActionPerformed);
+        panelStudentHeaderRight.add(btnResetStudent);
+
+        Student.add(panelStudentHeader, java.awt.BorderLayout.PAGE_START);
+
+        panelStudentBody.setBackground(new java.awt.Color(248, 250, 252));
+        panelStudentBody.setLayout(new java.awt.BorderLayout(16, 0));
+
+        panelStudentFormCard.setBackground(new java.awt.Color(255, 255, 255));
+        panelStudentFormCard.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelStudentFormCard.setPreferredSize(new java.awt.Dimension(430, 520));
+
+        lblStudentCardTitle.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
+        lblStudentCardTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblStudentCardTitle.setText("Student Registration");
+
+        lblStudentCardSub.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblStudentCardSub.setForeground(new java.awt.Color(100, 116, 139));
+        lblStudentCardSub.setText("Fill out required details to register or update a learner");
+
+        lblStudentID.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblStudentID.setForeground(new java.awt.Color(51, 65, 85));
+        lblStudentID.setText("Student ID");
+
+        lblStudentIDVal.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblStudentIDVal.setForeground(new java.awt.Color(37, 99, 235));
+        lblStudentIDVal.setText("STU-Auto");
+
+        lblStudentName.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblStudentName.setForeground(new java.awt.Color(51, 65, 85));
+        lblStudentName.setText("Full Name *");
+
+        txtStudentName.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+
+        lblStudentNIC.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblStudentNIC.setForeground(new java.awt.Color(51, 65, 85));
+        lblStudentNIC.setText("NIC Number *");
+
+        txtStudentNIC.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+
+        lblStudentPhone.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblStudentPhone.setForeground(new java.awt.Color(51, 65, 85));
+        lblStudentPhone.setText("Phone Number *");
+
+        txtStudentPhone.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+
+        lblStudentAddress.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblStudentAddress.setForeground(new java.awt.Color(51, 65, 85));
+        lblStudentAddress.setText("Address");
+
+        txtStudentAddress.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+
+        lblStudentClass.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblStudentClass.setForeground(new java.awt.Color(51, 65, 85));
+        lblStudentClass.setText("Vehicle Class");
+
+        cmbStudentClass.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbStudentClass.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {
+            "Class B (Dual Purpose / Car)",
+            "Class A (Motorcycle)",
+            "Class A & B (Combo)",
+            "Class B1 (Auto Light Vehicle)",
+            "Class C (Commercial / Heavy)"
+        }));
+
+        lblStudentStatus.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblStudentStatus.setForeground(new java.awt.Color(51, 65, 85));
+        lblStudentStatus.setText("Learning Status");
+
+        cmbStudentStatus.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbStudentStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {
+            "Active Learner",
+            "Theory Exam Pending",
+            "Theory Passed",
+            "Practical Training",
+            "Trial / Exam Ready",
+            "Completed"
+        }));
+
+        btnAddStudent.setBackground(new java.awt.Color(37, 99, 235));
+        btnAddStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        btnAddStudent.setForeground(new java.awt.Color(255, 255, 255));
+        btnAddStudent.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Add_Male_User_Group_25px.png"))); // NOI18N
+        btnAddStudent.setText("Add Student");
+        btnAddStudent.setBorder(null);
+        btnAddStudent.setFocusPainted(false);
+
+        btnUpdateStudent.setBackground(new java.awt.Color(102, 153, 255));
+        btnUpdateStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        btnUpdateStudent.setForeground(new java.awt.Color(255, 255, 255));
+        btnUpdateStudent.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Female_User_Update_25px.png"))); // NOI18N
+        btnUpdateStudent.setText("Update");
+        btnUpdateStudent.setBorder(null);
+        btnUpdateStudent.setFocusPainted(false);
+
+        btnDeleteStudent.setBackground(new java.awt.Color(204, 0, 51));
+        btnDeleteStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        btnDeleteStudent.setForeground(new java.awt.Color(255, 255, 255));
+        btnDeleteStudent.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Delete_25px.png"))); // NOI18N
+        btnDeleteStudent.setText("Delete");
+        btnDeleteStudent.setBorder(null);
+        btnDeleteStudent.setFocusPainted(false);
+
+        btnClearStudent.setBackground(new java.awt.Color(100, 116, 139));
+        btnClearStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        btnClearStudent.setForeground(new java.awt.Color(255, 255, 255));
+        btnClearStudent.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_broom_25px.png"))); // NOI18N
+        btnClearStudent.setText("Clear");
+        btnClearStudent.setBorder(null);
+        btnClearStudent.setFocusPainted(false);
+        btnClearStudent.addActionListener(this::btnClearStudentActionPerformed);
+
+        javax.swing.GroupLayout panelStudentFormCardLayout = new javax.swing.GroupLayout(panelStudentFormCard);
+        panelStudentFormCard.setLayout(panelStudentFormCardLayout);
+        panelStudentFormCardLayout.setHorizontalGroup(
+            panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelStudentFormCardLayout.createSequentialGroup()
+                .addGap(20, 20, 20)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblStudentCardTitle)
+                    .addComponent(lblStudentCardSub)
+                    .addGroup(panelStudentFormCardLayout.createSequentialGroup()
+                        .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lblStudentID, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
+                            .addComponent(lblStudentName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblStudentNIC, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblStudentPhone, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblStudentAddress, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblStudentClass, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblStudentStatus, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lblStudentIDVal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtStudentName)
+                            .addComponent(txtStudentNIC)
+                            .addComponent(txtStudentPhone)
+                            .addComponent(txtStudentAddress)
+                            .addComponent(cmbStudentClass, 0, 260, Short.MAX_VALUE)
+                            .addComponent(cmbStudentStatus, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(panelStudentFormCardLayout.createSequentialGroup()
+                        .addComponent(btnAddStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnUpdateStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(panelStudentFormCardLayout.createSequentialGroup()
+                        .addComponent(btnDeleteStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnClearStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
-        StudentLayout.setVerticalGroup(
-            StudentLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 521, Short.MAX_VALUE)
+        panelStudentFormCardLayout.setVerticalGroup(
+            panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panelStudentFormCardLayout.createSequentialGroup()
+                .addGap(16, 16, 16)
+                .addComponent(lblStudentCardTitle)
+                .addGap(2, 2, 2)
+                .addComponent(lblStudentCardSub)
+                .addGap(16, 16, 16)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentID, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblStudentIDVal, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentName)
+                    .addComponent(txtStudentName, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentNIC)
+                    .addComponent(txtStudentNIC, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentPhone)
+                    .addComponent(txtStudentPhone, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentAddress)
+                    .addComponent(txtStudentAddress, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentClass)
+                    .addComponent(cmbStudentClass, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblStudentStatus)
+                    .addComponent(cmbStudentStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnUpdateStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnDeleteStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnClearStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
+
+        panelStudentBody.add(panelStudentFormCard, java.awt.BorderLayout.LINE_START);
+
+        panelStudentTableCard.setBackground(new java.awt.Color(255, 255, 255));
+        panelStudentTableCard.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelStudentTableCard.setLayout(new java.awt.BorderLayout(0, 8));
+
+        panelStudentTableHeader.setBackground(new java.awt.Color(255, 255, 255));
+        panelStudentTableHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 16, 8, 16));
+        panelStudentTableHeader.setLayout(new java.awt.GridLayout(2, 1, 0, 2));
+
+        lblStudentTableTitle.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblStudentTableTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblStudentTableTitle.setText("Registered Students Directory");
+        panelStudentTableHeader.add(lblStudentTableTitle);
+
+        lblStudentTableSub.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblStudentTableSub.setForeground(new java.awt.Color(100, 116, 139));
+        lblStudentTableSub.setText("List of all enrolled students, contact numbers, vehicle classes, and status");
+        panelStudentTableHeader.add(lblStudentTableSub);
+
+        panelStudentTableCard.add(panelStudentTableHeader, java.awt.BorderLayout.PAGE_START);
+
+        scrollStudentTable.setBackground(new java.awt.Color(255, 255, 255));
+        scrollStudentTable.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+
+        tableStudents.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"STU-1001", "Kasun Perera", "199824501234", "0771234567", "12/A, Temple Rd, Colombo", "Class B (Dual Purpose / Car)", "Practical Training"},
+                {"STU-1002", "Nimali Fernando", "200165403219", "0719876543", "45, Galle Rd, Kalutara", "Class A & B (Combo)", "Theory Passed"},
+                {"STU-1003", "Dinesh Jayasinghe", "199512304567", "0754567890", "78, Kandy Rd, Kadawatha", "Class B (Dual Purpose / Car)", "Active Learner"},
+                {"STU-1004", "Sanduni Wickramasinghe", "200278901245", "0763456789", "15, High Level Rd, Nugegoda", "Class B1 (Auto Light Vehicle)", "Trial / Exam Ready"},
+                {"STU-1005", "Ruwan Tharaka", "199732109876", "0702345678", "89, Negombo Rd, Ja-Ela", "Class A (Motorcycle)", "Practical Training"},
+                {"STU-1006", "Anoma Senanayake", "199265409812", "0725678901", "23, Station Rd, Gampaha", "Class B (Dual Purpose / Car)", "Completed"}
+            },
+            new String [] {
+                "Student ID", "Full Name", "NIC", "Phone", "Address", "Vehicle Class", "Status"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tableStudents.setFillsViewportHeight(true);
+        tableStudents.setRowHeight(34);
+        tableStudents.setShowGrid(false);
+        tableStudents.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableStudentsMouseClicked(evt);
+            }
+        });
+        scrollStudentTable.setViewportView(tableStudents);
+
+        panelStudentTableCard.add(scrollStudentTable, java.awt.BorderLayout.CENTER);
+
+        panelStudentTableFooter.setBackground(new java.awt.Color(255, 255, 255));
+        panelStudentTableFooter.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        panelStudentTableFooter.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
+
+        lblStudentCount.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblStudentCount.setForeground(new java.awt.Color(100, 116, 139));
+        lblStudentCount.setText("Showing 6 enrolled students | Click row to inspect details");
+        panelStudentTableFooter.add(lblStudentCount);
+
+        panelStudentTableCard.add(panelStudentTableFooter, java.awt.BorderLayout.PAGE_END);
+
+        panelStudentBody.add(panelStudentTableCard, java.awt.BorderLayout.CENTER);
+
+        Student.add(panelStudentBody, java.awt.BorderLayout.CENTER);
 
         Contructor.add(Student, "cardStudents");
 
@@ -883,6 +1224,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnActionRegister.setBorder(null);
         btnActionRegister.setFocusPainted(false);
         btnActionRegister.setPreferredSize(new java.awt.Dimension(90, 32));
+        btnActionRegister.addActionListener(evt -> switchCard("cardStudents"));
         panelActionRegister.add(btnActionRegister, java.awt.BorderLayout.PAGE_START);
 
         panelQuickGrid.add(panelActionRegister);
@@ -1037,6 +1379,47 @@ public class Dashbord extends javax.swing.JFrame {
     private void btnStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStudentActionPerformed
         switchCard("cardStudents");
     }//GEN-LAST:event_btnStudentActionPerformed
+
+    private void btnClearStudentActionPerformed(java.awt.event.ActionEvent evt) {
+        lblStudentIDVal.setText("STU-Auto");
+        txtStudentName.setText("");
+        txtStudentNIC.setText("");
+        txtStudentPhone.setText("");
+        txtStudentAddress.setText("");
+        cmbStudentClass.setSelectedIndex(0);
+        cmbStudentStatus.setSelectedIndex(0);
+        tableStudents.clearSelection();
+    }
+
+    private void btnResetStudentActionPerformed(java.awt.event.ActionEvent evt) {
+        txtSearchStudent.setText("");
+        tableStudents.clearSelection();
+    }
+
+    private void tableStudentsMouseClicked(java.awt.event.MouseEvent evt) {
+        int row = tableStudents.getSelectedRow();
+        if (row >= 0) {
+            lblStudentIDVal.setText(String.valueOf(tableStudents.getValueAt(row, 0)));
+            txtStudentName.setText(String.valueOf(tableStudents.getValueAt(row, 1)));
+            txtStudentNIC.setText(String.valueOf(tableStudents.getValueAt(row, 2)));
+            txtStudentPhone.setText(String.valueOf(tableStudents.getValueAt(row, 3)));
+            txtStudentAddress.setText(String.valueOf(tableStudents.getValueAt(row, 4)));
+            String vClass = String.valueOf(tableStudents.getValueAt(row, 5));
+            for (int i = 0; i < cmbStudentClass.getItemCount(); i++) {
+                if (cmbStudentClass.getItemAt(i).equalsIgnoreCase(vClass) || cmbStudentClass.getItemAt(i).contains(vClass)) {
+                    cmbStudentClass.setSelectedIndex(i);
+                    break;
+                }
+            }
+            String status = String.valueOf(tableStudents.getValueAt(row, 6));
+            for (int i = 0; i < cmbStudentStatus.getItemCount(); i++) {
+                if (cmbStudentStatus.getItemAt(i).equalsIgnoreCase(status)) {
+                    cmbStudentStatus.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+    }
 
     private void btnInstructorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInstructorsActionPerformed
         switchCard("cardInstructors");
@@ -1632,6 +2015,44 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JScrollPane scrollRecentBookings;
     private javax.swing.JTable tableRecentBookings;
     private javax.swing.JPanel user_Management;
+    private javax.swing.JPanel panelStudentHeader;
+    private javax.swing.JPanel panelStudentHeaderLeft;
+    private javax.swing.JLabel lblStudentHeaderTitle;
+    private javax.swing.JLabel lblStudentHeaderSub;
+    private javax.swing.JPanel panelStudentHeaderRight;
+    private javax.swing.JTextField txtSearchStudent;
+    private javax.swing.JButton btnSearchStudent;
+    private javax.swing.JButton btnResetStudent;
+    private javax.swing.JPanel panelStudentBody;
+    private javax.swing.JPanel panelStudentFormCard;
+    private javax.swing.JLabel lblStudentCardTitle;
+    private javax.swing.JLabel lblStudentCardSub;
+    private javax.swing.JLabel lblStudentID;
+    private javax.swing.JLabel lblStudentIDVal;
+    private javax.swing.JLabel lblStudentName;
+    private javax.swing.JTextField txtStudentName;
+    private javax.swing.JLabel lblStudentNIC;
+    private javax.swing.JTextField txtStudentNIC;
+    private javax.swing.JLabel lblStudentPhone;
+    private javax.swing.JTextField txtStudentPhone;
+    private javax.swing.JLabel lblStudentAddress;
+    private javax.swing.JTextField txtStudentAddress;
+    private javax.swing.JLabel lblStudentClass;
+    private javax.swing.JComboBox<String> cmbStudentClass;
+    private javax.swing.JLabel lblStudentStatus;
+    private javax.swing.JComboBox<String> cmbStudentStatus;
+    private javax.swing.JButton btnAddStudent;
+    private javax.swing.JButton btnUpdateStudent;
+    private javax.swing.JButton btnDeleteStudent;
+    private javax.swing.JButton btnClearStudent;
+    private javax.swing.JPanel panelStudentTableCard;
+    private javax.swing.JPanel panelStudentTableHeader;
+    private javax.swing.JLabel lblStudentTableTitle;
+    private javax.swing.JLabel lblStudentTableSub;
+    private javax.swing.JScrollPane scrollStudentTable;
+    private javax.swing.JTable tableStudents;
+    private javax.swing.JPanel panelStudentTableFooter;
+    private javax.swing.JLabel lblStudentCount;
     // End of variables declaration//GEN-END:variables
 
     private void btnhide() {
