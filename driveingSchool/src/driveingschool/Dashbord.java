@@ -437,7 +437,6 @@ public class Dashbord extends javax.swing.JFrame {
         lblStudentHeaderTitle.setText("Student Management");
         panelStudentHeaderLeft.add(lblStudentHeaderTitle);
 
-        lblStudentHeaderSub.setFont(new java.awt.Font("Segoe UI", 0, 12)); // NOI18N
         lblStudentHeaderSub.setForeground(new java.awt.Color(100, 116, 139));
         lblStudentHeaderSub.setText("Enroll learners, manage admission records, and track training status");
         panelStudentHeaderLeft.add(lblStudentHeaderSub);
@@ -448,7 +447,6 @@ public class Dashbord extends javax.swing.JFrame {
         panelStudentHeaderRight.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 4));
 
         txtSearchStudent.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        txtSearchStudent.putClientProperty("JTextField.placeholderText", "Search student by name or NIC...");
         txtSearchStudent.setPreferredSize(new java.awt.Dimension(220, 34));
         panelStudentHeaderRight.add(txtSearchStudent);
 
@@ -470,6 +468,8 @@ public class Dashbord extends javax.swing.JFrame {
         btnResetStudent.setPreferredSize(new java.awt.Dimension(85, 34));
         btnResetStudent.addActionListener(this::btnResetStudentActionPerformed);
         panelStudentHeaderRight.add(btnResetStudent);
+
+        panelStudentHeader.add(panelStudentHeaderRight, java.awt.BorderLayout.LINE_END);
 
         Student.add(panelStudentHeader, java.awt.BorderLayout.PAGE_START);
 
@@ -525,27 +525,12 @@ public class Dashbord extends javax.swing.JFrame {
         lblStudentClass.setText("Vehicle Class");
 
         cmbStudentClass.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        cmbStudentClass.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {
-            "Class B (Dual Purpose / Car)",
-            "Class A (Motorcycle)",
-            "Class A & B (Combo)",
-            "Class B1 (Auto Light Vehicle)",
-            "Class C (Commercial / Heavy)"
-        }));
 
         lblStudentStatus.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
         lblStudentStatus.setForeground(new java.awt.Color(51, 65, 85));
         lblStudentStatus.setText("Learning Status");
 
         cmbStudentStatus.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        cmbStudentStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {
-            "Active Learner",
-            "Theory Exam Pending",
-            "Theory Passed",
-            "Practical Training",
-            "Trial / Exam Ready",
-            "Completed"
-        }));
 
         btnAddStudent.setBackground(new java.awt.Color(37, 99, 235));
         btnAddStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
@@ -554,6 +539,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnAddStudent.setText("Add Student");
         btnAddStudent.setBorder(null);
         btnAddStudent.setFocusPainted(false);
+        btnAddStudent.addActionListener(this::btnAddStudentActionPerformed);
 
         btnUpdateStudent.setBackground(new java.awt.Color(102, 153, 255));
         btnUpdateStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
@@ -615,7 +601,7 @@ public class Dashbord extends javax.swing.JFrame {
                         .addComponent(btnDeleteStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnClearStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(20, Short.MAX_VALUE))
+                .addContainerGap(26, Short.MAX_VALUE))
         );
         panelStudentFormCardLayout.setVerticalGroup(
             panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -746,7 +732,7 @@ public class Dashbord extends javax.swing.JFrame {
         );
         VehiclesLayout.setVerticalGroup(
             VehiclesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 521, Short.MAX_VALUE)
+            .addGap(0, 551, Short.MAX_VALUE)
         );
 
         Contructor.add(Vehicles, "cardVehicles");
@@ -759,7 +745,7 @@ public class Dashbord extends javax.swing.JFrame {
         );
         InstructorsLayout.setVerticalGroup(
             InstructorsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 521, Short.MAX_VALUE)
+            .addGap(0, 551, Short.MAX_VALUE)
         );
 
         Contructor.add(Instructors, "cardInstructors");
@@ -772,7 +758,7 @@ public class Dashbord extends javax.swing.JFrame {
         );
         BookingsLayout.setVerticalGroup(
             BookingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 521, Short.MAX_VALUE)
+            .addGap(0, 551, Short.MAX_VALUE)
         );
 
         Contructor.add(Bookings, "cardBookings");
@@ -787,7 +773,7 @@ public class Dashbord extends javax.swing.JFrame {
         );
         Bookings_ManagementLayout.setVerticalGroup(
             Bookings_ManagementLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 521, Short.MAX_VALUE)
+            .addGap(0, 551, Short.MAX_VALUE)
         );
 
         Contructor.add(Bookings_Management, "cardBookingManagement");
@@ -799,6 +785,8 @@ public class Dashbord extends javax.swing.JFrame {
         jPanel5.setBackground(new java.awt.Color(0, 0, 0));
         jPanel5.setLayout(new java.awt.BorderLayout());
 
+        jTable1.setFillsViewportHeight(true);
+        jTable1.setRowHeight(30);
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -810,8 +798,6 @@ public class Dashbord extends javax.swing.JFrame {
                 "User_ID", "Username", "NIC", "role"
             }
         ));
-        jTable1.setFillsViewportHeight(true);
-        jTable1.setRowHeight(30);
         jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jTable1MouseClicked(evt);
@@ -823,31 +809,26 @@ public class Dashbord extends javax.swing.JFrame {
 
         user_Management.add(jPanel5, java.awt.BorderLayout.CENTER);
 
-        jPanel4.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel4.setBackground(new java.awt.Color(248, 250, 252));
         jPanel4.setPreferredSize(new java.awt.Dimension(430, 520));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(255, 255, 204));
         jLabel1.setText("ADD USER");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("User ID ");
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Username   ");
 
         jTextField2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setText("Password   ");
 
         jTextField4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("NIC ");
 
         btnAddUser.setBackground(new java.awt.Color(102, 153, 255));
@@ -855,6 +836,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnAddUser.setForeground(new java.awt.Color(255, 255, 255));
         btnAddUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Add_Male_User_Group_25px.png"))); // NOI18N
         btnAddUser.setText(" Add User");
+        btnAddUser.setBorder(null);
         btnAddUser.addActionListener(this::btnAddUserActionPerformed);
 
         btnUpdateUser.setBackground(new java.awt.Color(102, 153, 255));
@@ -862,6 +844,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnUpdateUser.setForeground(new java.awt.Color(255, 255, 255));
         btnUpdateUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Female_User_Update_25px.png"))); // NOI18N
         btnUpdateUser.setText("Update ");
+        btnUpdateUser.setBorder(null);
         btnUpdateUser.addActionListener(this::btnUpdateUserActionPerformed);
 
         btnDeleteUser.setBackground(new java.awt.Color(204, 0, 51));
@@ -869,6 +852,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnDeleteUser.setForeground(new java.awt.Color(255, 255, 255));
         btnDeleteUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Delete_25px.png"))); // NOI18N
         btnDeleteUser.setText("Delete ");
+        btnDeleteUser.setBorder(null);
         btnDeleteUser.addActionListener(this::btnDeleteUserActionPerformed);
 
         btnClearUser.setBackground(new java.awt.Color(204, 0, 51));
@@ -876,18 +860,17 @@ public class Dashbord extends javax.swing.JFrame {
         btnClearUser.setForeground(new java.awt.Color(255, 255, 255));
         btnClearUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_broom_25px.png"))); // NOI18N
         btnClearUser.setText("Clear");
+        btnClearUser.setBorder(null);
         btnClearUser.addActionListener(this::btnClearUserActionPerformed);
 
         jPasswordField1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
-        jLabel7.setForeground(new java.awt.Color(255, 255, 255));
         jLabel7.setText("Re-Password   ");
 
         jPasswordField2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel6.setForeground(new java.awt.Color(255, 255, 255));
         jLabel6.setText("ROLE");
 
         jComboBox1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
@@ -900,10 +883,8 @@ public class Dashbord extends javax.swing.JFrame {
         jLabel9.setText(" the default password will be added automatically.");
 
         lblUserID.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        lblUserID.setForeground(new java.awt.Color(255, 255, 255));
 
         jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel10.setForeground(new java.awt.Color(255, 255, 255));
         jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_password_25px_1.png"))); // NOI18N
         jLabel10.setText("Change Default Password");
         jLabel10.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -925,6 +906,16 @@ public class Dashbord extends javax.swing.JFrame {
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGap(6, 6, 6)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel10)
+                .addGap(29, 29, 29))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(CheckFirstTimeLog)
+                .addContainerGap())
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createSequentialGroup()
@@ -952,12 +943,9 @@ public class Dashbord extends javax.swing.JFrame {
                             .addComponent(jLabel8)
                             .addComponent(jLabel9)
                             .addGroup(jPanel4Layout.createSequentialGroup()
-                                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(btnAddUser)
-                                    .addGroup(jPanel4Layout.createSequentialGroup()
-                                        .addComponent(btnUpdateUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(btnUpdateUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(jPanel4Layout.createSequentialGroup()
@@ -971,18 +959,11 @@ public class Dashbord extends javax.swing.JFrame {
                                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(23, 23, 23)
                                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(6, 6, 6)))))
-                .addContainerGap(18, Short.MAX_VALUE))
-            .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(6, 6, 6)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel10)
-                .addGap(29, 29, 29))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(CheckFirstTimeLog)
-                .addContainerGap())
+                                .addGap(6, 6, 6))))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(85, 85, 85)
+                        .addComponent(btnAddUser, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(28, Short.MAX_VALUE))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1224,7 +1205,6 @@ public class Dashbord extends javax.swing.JFrame {
         btnActionRegister.setBorder(null);
         btnActionRegister.setFocusPainted(false);
         btnActionRegister.setPreferredSize(new java.awt.Dimension(90, 32));
-        btnActionRegister.addActionListener(evt -> switchCard("cardStudents"));
         panelActionRegister.add(btnActionRegister, java.awt.BorderLayout.PAGE_START);
 
         panelQuickGrid.add(panelActionRegister);
@@ -1882,6 +1862,10 @@ public class Dashbord extends javax.swing.JFrame {
        jLabel10.setForeground(Color.white); 
     }//GEN-LAST:event_jLabel10MouseExited
 
+    private void btnAddStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddStudentActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddStudentActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1920,18 +1904,26 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JButton btnActionBooking;
     private javax.swing.JButton btnActionManage;
     private javax.swing.JButton btnActionRegister;
+    private javax.swing.JButton btnAddStudent;
     private javax.swing.JButton btnAddUser;
     private javax.swing.JButton btnBooking;
     private javax.swing.JButton btnBookingManage;
+    private javax.swing.JButton btnClearStudent;
     private javax.swing.JButton btnClearUser;
     private javax.swing.JButton btnDashboard;
+    private javax.swing.JButton btnDeleteStudent;
     private javax.swing.JButton btnDeleteUser;
     private javax.swing.JButton btnInstructors;
+    private javax.swing.JButton btnResetStudent;
+    private javax.swing.JButton btnSearchStudent;
     private javax.swing.JButton btnStudent;
+    private javax.swing.JButton btnUpdateStudent;
     private javax.swing.JButton btnUpdateUser;
     private javax.swing.JButton btnUserManagement;
     private javax.swing.JButton btnVehicle;
     private javax.swing.JButton btnViewAllBookings;
+    private javax.swing.JComboBox<String> cmbStudentClass;
+    private javax.swing.JComboBox<String> cmbStudentStatus;
     private javax.swing.JButton jButton8;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
@@ -1977,6 +1969,21 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JLabel lblRecentSub;
     private javax.swing.JLabel lblRecentTitle;
     private javax.swing.JLabel lblRole;
+    private javax.swing.JLabel lblStudentAddress;
+    private javax.swing.JLabel lblStudentCardSub;
+    private javax.swing.JLabel lblStudentCardTitle;
+    private javax.swing.JLabel lblStudentClass;
+    private javax.swing.JLabel lblStudentCount;
+    private javax.swing.JLabel lblStudentHeaderSub;
+    private javax.swing.JLabel lblStudentHeaderTitle;
+    private javax.swing.JLabel lblStudentID;
+    private javax.swing.JLabel lblStudentIDVal;
+    private javax.swing.JLabel lblStudentNIC;
+    private javax.swing.JLabel lblStudentName;
+    private javax.swing.JLabel lblStudentPhone;
+    private javax.swing.JLabel lblStudentStatus;
+    private javax.swing.JLabel lblStudentTableSub;
+    private javax.swing.JLabel lblStudentTableTitle;
     private javax.swing.JLabel lblTitleBookings;
     private javax.swing.JLabel lblTitleInstructors;
     private javax.swing.JLabel lblTitleStudents;
@@ -2010,49 +2017,26 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JPanel panelRecentBookings;
     private javax.swing.JPanel panelRecentHeader;
     private javax.swing.JPanel panelRecentTitles;
+    private javax.swing.JPanel panelStudentBody;
+    private javax.swing.JPanel panelStudentFormCard;
+    private javax.swing.JPanel panelStudentHeader;
+    private javax.swing.JPanel panelStudentHeaderLeft;
+    private javax.swing.JPanel panelStudentHeaderRight;
+    private javax.swing.JPanel panelStudentTableCard;
+    private javax.swing.JPanel panelStudentTableFooter;
+    private javax.swing.JPanel panelStudentTableHeader;
     private javax.swing.JPanel panelSummaryCards;
     private javax.swing.JPanel panelTopSection;
     private javax.swing.JScrollPane scrollRecentBookings;
-    private javax.swing.JTable tableRecentBookings;
-    private javax.swing.JPanel user_Management;
-    private javax.swing.JPanel panelStudentHeader;
-    private javax.swing.JPanel panelStudentHeaderLeft;
-    private javax.swing.JLabel lblStudentHeaderTitle;
-    private javax.swing.JLabel lblStudentHeaderSub;
-    private javax.swing.JPanel panelStudentHeaderRight;
-    private javax.swing.JTextField txtSearchStudent;
-    private javax.swing.JButton btnSearchStudent;
-    private javax.swing.JButton btnResetStudent;
-    private javax.swing.JPanel panelStudentBody;
-    private javax.swing.JPanel panelStudentFormCard;
-    private javax.swing.JLabel lblStudentCardTitle;
-    private javax.swing.JLabel lblStudentCardSub;
-    private javax.swing.JLabel lblStudentID;
-    private javax.swing.JLabel lblStudentIDVal;
-    private javax.swing.JLabel lblStudentName;
-    private javax.swing.JTextField txtStudentName;
-    private javax.swing.JLabel lblStudentNIC;
-    private javax.swing.JTextField txtStudentNIC;
-    private javax.swing.JLabel lblStudentPhone;
-    private javax.swing.JTextField txtStudentPhone;
-    private javax.swing.JLabel lblStudentAddress;
-    private javax.swing.JTextField txtStudentAddress;
-    private javax.swing.JLabel lblStudentClass;
-    private javax.swing.JComboBox<String> cmbStudentClass;
-    private javax.swing.JLabel lblStudentStatus;
-    private javax.swing.JComboBox<String> cmbStudentStatus;
-    private javax.swing.JButton btnAddStudent;
-    private javax.swing.JButton btnUpdateStudent;
-    private javax.swing.JButton btnDeleteStudent;
-    private javax.swing.JButton btnClearStudent;
-    private javax.swing.JPanel panelStudentTableCard;
-    private javax.swing.JPanel panelStudentTableHeader;
-    private javax.swing.JLabel lblStudentTableTitle;
-    private javax.swing.JLabel lblStudentTableSub;
     private javax.swing.JScrollPane scrollStudentTable;
+    private javax.swing.JTable tableRecentBookings;
     private javax.swing.JTable tableStudents;
-    private javax.swing.JPanel panelStudentTableFooter;
-    private javax.swing.JLabel lblStudentCount;
+    private javax.swing.JTextField txtSearchStudent;
+    private javax.swing.JTextField txtStudentAddress;
+    private javax.swing.JTextField txtStudentNIC;
+    private javax.swing.JTextField txtStudentName;
+    private javax.swing.JTextField txtStudentPhone;
+    private javax.swing.JPanel user_Management;
     // End of variables declaration//GEN-END:variables
 
     private void btnhide() {
