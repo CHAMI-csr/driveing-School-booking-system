@@ -451,9 +451,12 @@ public class Dashbord extends javax.swing.JFrame {
 
         Contructor.add(Bookings_Management, "cardBookingManagement");
 
-        user_Management.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        user_Management.setBackground(new java.awt.Color(248, 250, 252));
+        user_Management.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 20, 24));
+        user_Management.setLayout(new java.awt.BorderLayout(16, 0));
 
         jPanel5.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel5.setLayout(new java.awt.BorderLayout());
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -466,6 +469,8 @@ public class Dashbord extends javax.swing.JFrame {
                 "User_ID", "Username", "NIC", "role"
             }
         ));
+        jTable1.setFillsViewportHeight(true);
+        jTable1.setRowHeight(30);
         jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 jTable1MouseClicked(evt);
@@ -473,23 +478,12 @@ public class Dashbord extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
-        jPanel5.setLayout(jPanel5Layout);
-        jPanel5Layout.setHorizontalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel5Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 414, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(10, Short.MAX_VALUE))
-        );
-        jPanel5Layout.setVerticalGroup(
-            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 520, Short.MAX_VALUE)
-        );
+        jPanel5.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
-        user_Management.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 0, 430, 520));
+        user_Management.add(jPanel5, java.awt.BorderLayout.CENTER);
 
         jPanel4.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel4.setPreferredSize(new java.awt.Dimension(430, 520));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(255, 255, 204));
@@ -683,9 +677,9 @@ public class Dashbord extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(CheckFirstTimeLog)
                 .addGap(13, 13, 13)
-                .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnAddUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -693,10 +687,10 @@ public class Dashbord extends javax.swing.JFrame {
                     .addComponent(btnUpdateUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(36, 36, 36))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        user_Management.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 420, 520));
+        user_Management.add(jPanel4, java.awt.BorderLayout.LINE_START);
 
         Contructor.add(user_Management, "cardUserManagement");
 
