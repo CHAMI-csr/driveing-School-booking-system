@@ -154,47 +154,7 @@ public class Dashbord extends javax.swing.JFrame {
         jTable1.clearSelection();
     }
 
-    private void ensureStudentTableSchema() {
-        Connection conn = getConnection();
-        if (conn != null) {
-            try (java.sql.Statement stmt = conn.createStatement()) {
-                try {
-                    stmt.executeUpdate("ALTER TABLE students ADD COLUMN vehicle_class VARCHAR(50) DEFAULT 'Class B (Dual Purpose / Car)'");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE students ADD COLUMN status VARCHAR(30) DEFAULT 'Active Learner'");
-                } catch (SQLException ignored) {
-                }
-            } catch (SQLException ex) {
-                logger.log(Level.WARNING, "Failed to verify student table schema", ex);
-            }
-        }
-    }
-
     private void initStudentComponents() {
-        ensureStudentTableSchema();
-
-        if (cmbStudentClass.getItemCount() == 0) {
-            cmbStudentClass.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Class B (Dual Purpose / Car)",
-                "Class A (Motorcycle)",
-                "Class B1 (Auto Light Vehicle)",
-                "Class A & B (Combo)",
-                "Class C (Heavy Vehicle)",
-                "Class D (Bus)"
-            }));
-        }
-
-        if (cmbStudentStatus.getItemCount() == 0) {
-            cmbStudentStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Active Learner",
-                "Theory Passed",
-                "Practical Training",
-                "Trial / Exam Ready",
-                "Completed"
-            }));
-        }
 
         // Attach action listener for search button and Enter key on search field
         for (java.awt.event.ActionListener al : btnSearchStudent.getActionListeners()) {
@@ -290,59 +250,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnClearStudent.setVisible(false);
     }
 
-    private void ensureInstructorTableSchema() {
-        Connection conn = getConnection();
-        if (conn != null) {
-            try (java.sql.Statement stmt = conn.createStatement()) {
-                try {
-                    stmt.executeUpdate("ALTER TABLE instructors ADD COLUMN nic VARCHAR(12) DEFAULT NULL");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE instructors ADD COLUMN license_no VARCHAR(50) DEFAULT NULL");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE instructors ADD COLUMN vehicle_class VARCHAR(50) DEFAULT 'Class B (Dual Purpose / Car)'");
-                } catch (SQLException ignored) {
-                }
-            } catch (SQLException ex) {
-                logger.log(Level.WARNING, "Failed to verify instructor table schema", ex);
-            }
-        }
-    }
-
     private void initInstructorComponents() {
-        ensureInstructorTableSchema();
-
-        if (cmbInstCategory.getItemCount() == 0) {
-            cmbInstCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Class B (Dual Purpose / Car)",
-                "Class A (Motorcycle)",
-                "Class B1 (Auto Light Vehicle)",
-                "Class A & B (Combo)",
-                "Class C (Heavy Vehicle)",
-                "Class D (Bus)"
-            }));
-        }
-
-        if (cmbInstStatus.getItemCount() == 0) {
-            cmbInstStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Available",
-                "On Duty",
-                "On Leave"
-            }));
-        }
-
-        if (cmbInstFilterStatus.getItemCount() == 0) {
-            cmbInstFilterStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "All Statuses",
-                "Available",
-                "On Duty",
-                "On Leave"
-            }));
-        }
-
         for (java.awt.event.ActionListener al : btnInstRefresh.getActionListeners()) {
             btnInstRefresh.removeActionListener(al);
         }
@@ -503,86 +411,7 @@ public class Dashbord extends javax.swing.JFrame {
         }
     }
 
-    private void ensureVehicleTableSchema() {
-        Connection conn = getConnection();
-        if (conn != null) {
-            try (java.sql.Statement stmt = conn.createStatement()) {
-                try {
-                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN model VARCHAR(100) DEFAULT NULL");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN vehicle_class VARCHAR(50) DEFAULT 'Class B (Dual Purpose / Car)'");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN transmission VARCHAR(20) DEFAULT 'Manual'");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN fuel_type VARCHAR(20) DEFAULT 'Petrol'");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN mileage VARCHAR(50) DEFAULT NULL");
-                } catch (SQLException ignored) {
-                }
-                try {
-                    stmt.executeUpdate("ALTER TABLE vehicles MODIFY COLUMN vehicle_type VARCHAR(50) DEFAULT 'Car'");
-                } catch (SQLException ignored) {
-                }
-            } catch (SQLException ex) {
-                logger.log(Level.WARNING, "Failed to verify vehicle table schema", ex);
-            }
-        }
-    }
-
     private void initVehicleComponents() {
-        ensureVehicleTableSchema();
-
-        if (cmbVehCategory.getItemCount() == 0) {
-            cmbVehCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Class B (Dual Purpose / Car)",
-                "Class A (Motorcycle)",
-                "Class B1 (Auto Light Vehicle)",
-                "Class A & B (Combo)",
-                "Class C (Heavy Vehicle / Van)",
-                "Class D (Bus)"
-            }));
-        }
-
-        if (cmbVehTransmission.getItemCount() == 0) {
-            cmbVehTransmission.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Auto",
-                "Manual"
-            }));
-        }
-
-        if (cmbVehFuel.getItemCount() == 0) {
-            cmbVehFuel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Petrol",
-                "Diesel",
-                "Hybrid",
-                "Electric"
-            }));
-        }
-
-        if (cmbVehStatus.getItemCount() == 0) {
-            cmbVehStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "Available",
-                "In Session",
-                "Under Maintenance"
-            }));
-        }
-
-        if (cmbVehFilterStatus.getItemCount() == 0) {
-            cmbVehFilterStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
-                "All Statuses",
-                "Available",
-                "In Session",
-                "Under Maintenance"
-            }));
-        }
 
         for (java.awt.event.ActionListener al : btnVehRefresh.getActionListeners()) {
             btnVehRefresh.removeActionListener(al);
@@ -609,14 +438,6 @@ public class Dashbord extends javax.swing.JFrame {
             String st = (String) cmbVehFilterStatus.getSelectedItem();
             loadVehicles(kw, st);
         });
-
-        tableVehicles.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                tableVehiclesMouseClicked(evt);
-            }
-        });
-
         clearVehicleForm();
     }
 
@@ -720,72 +541,6 @@ public class Dashbord extends javax.swing.JFrame {
         btnVehClear.setVisible(false);
     }
 
-    private void tableVehiclesMouseClicked(java.awt.event.MouseEvent evt) {
-        int row = tableVehicles.getSelectedRow();
-        if (row >= 0) {
-            String vehIdStr = String.valueOf(tableVehicles.getValueAt(row, 0));
-            txtVehId.setText(vehIdStr);
-            txtVehModel.setText(String.valueOf(tableVehicles.getValueAt(row, 1)));
-            txtVehPlate.setText(String.valueOf(tableVehicles.getValueAt(row, 2)));
-
-            String vClass = String.valueOf(tableVehicles.getValueAt(row, 3));
-            for (int i = 0; i < cmbVehCategory.getItemCount(); i++) {
-                if (cmbVehCategory.getItemAt(i).equalsIgnoreCase(vClass) || cmbVehCategory.getItemAt(i).contains(vClass)) {
-                    cmbVehCategory.setSelectedIndex(i);
-                    break;
-                }
-            }
-
-            String trans = String.valueOf(tableVehicles.getValueAt(row, 4));
-            for (int i = 0; i < cmbVehTransmission.getItemCount(); i++) {
-                if (cmbVehTransmission.getItemAt(i).equalsIgnoreCase(trans)) {
-                    cmbVehTransmission.setSelectedIndex(i);
-                    break;
-                }
-            }
-
-            String fuel = String.valueOf(tableVehicles.getValueAt(row, 5));
-            for (int i = 0; i < cmbVehFuel.getItemCount(); i++) {
-                if (cmbVehFuel.getItemAt(i).equalsIgnoreCase(fuel)) {
-                    cmbVehFuel.setSelectedIndex(i);
-                    break;
-                }
-            }
-
-            String status = String.valueOf(tableVehicles.getValueAt(row, 6));
-            for (int i = 0; i < cmbVehStatus.getItemCount(); i++) {
-                if (cmbVehStatus.getItemAt(i).equalsIgnoreCase(status)) {
-                    cmbVehStatus.setSelectedIndex(i);
-                    break;
-                }
-            }
-
-            try {
-                int cleanId = Integer.parseInt(vehIdStr.replaceAll("[^0-9]", ""));
-                Connection conn = getConnection();
-                if (conn != null) {
-                    String mSql = "SELECT mileage FROM vehicles WHERE vehicle_id = ?";
-                    try (PreparedStatement mPst = conn.prepareStatement(mSql)) {
-                        mPst.setInt(1, cleanId);
-                        try (ResultSet mRs = mPst.executeQuery()) {
-                            if (mRs.next()) {
-                                String mil = mRs.getString("mileage");
-                                txtVehMileage.setText(mil != null ? mil : "");
-                            }
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                logger.log(Level.WARNING, "Failed to load vehicle mileage", ex);
-            }
-
-            btnVehAdd.setVisible(false);
-            btnVehUpdate.setVisible(true);
-            btnVehDelete.setVisible(true);
-            btnVehClear.setVisible(true);
-        }
-    }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -814,6 +569,62 @@ public class Dashbord extends javax.swing.JFrame {
         lblRole = new javax.swing.JLabel();
         lblUsername = new javax.swing.JLabel();
         Contructor = new javax.swing.JPanel();
+        Dashbord = new javax.swing.JPanel();
+        panelDashboardCenter = new javax.swing.JPanel();
+        panelTopSection = new javax.swing.JPanel();
+        panelSummaryCards = new javax.swing.JPanel();
+        panelCardStudents = new javax.swing.JPanel();
+        lblIconStudents = new javax.swing.JLabel();
+        panelCardStudentsText = new javax.swing.JPanel();
+        lblTitleStudents = new javax.swing.JLabel();
+        lblCountStudents = new javax.swing.JLabel();
+        lblTrendStudents = new javax.swing.JLabel();
+        panelCardBookings = new javax.swing.JPanel();
+        lblIconBookings = new javax.swing.JLabel();
+        panelCardBookingsText = new javax.swing.JPanel();
+        lblTitleBookings = new javax.swing.JLabel();
+        lblCountBookings = new javax.swing.JLabel();
+        lblTrendBookings = new javax.swing.JLabel();
+        panelCardInstructors = new javax.swing.JPanel();
+        lblIconInstructors = new javax.swing.JLabel();
+        panelCardInstructorsText = new javax.swing.JPanel();
+        lblTitleInstructors = new javax.swing.JLabel();
+        lblCountInstructors = new javax.swing.JLabel();
+        lblTrendInstructors = new javax.swing.JLabel();
+        panelCardVehicles = new javax.swing.JPanel();
+        lblIconVehicles = new javax.swing.JLabel();
+        panelCardVehiclesText = new javax.swing.JPanel();
+        lblTitleVehicles = new javax.swing.JLabel();
+        lblCountVehicles = new javax.swing.JLabel();
+        lblTrendVehicles = new javax.swing.JLabel();
+        panelQuickActions = new javax.swing.JPanel();
+        panelQuickHeader = new javax.swing.JPanel();
+        lblQuickTitle = new javax.swing.JLabel();
+        lblQuickSub = new javax.swing.JLabel();
+        panelQuickGrid = new javax.swing.JPanel();
+        panelActionRegister = new javax.swing.JPanel();
+        panelActionRegText = new javax.swing.JPanel();
+        lblActionRegTitle = new javax.swing.JLabel();
+        lblActionRegDesc = new javax.swing.JLabel();
+        btnActionRegister = new javax.swing.JButton();
+        panelActionBooking = new javax.swing.JPanel();
+        panelActionBkText = new javax.swing.JPanel();
+        lblActionBkTitle = new javax.swing.JLabel();
+        lblActionBkDesc = new javax.swing.JLabel();
+        btnActionBooking = new javax.swing.JButton();
+        panelActionManage = new javax.swing.JPanel();
+        panelActionMgText = new javax.swing.JPanel();
+        lblActionMgTitle = new javax.swing.JLabel();
+        lblActionMgDesc = new javax.swing.JLabel();
+        btnActionManage = new javax.swing.JButton();
+        panelRecentBookings = new javax.swing.JPanel();
+        panelRecentHeader = new javax.swing.JPanel();
+        panelRecentTitles = new javax.swing.JPanel();
+        lblRecentTitle = new javax.swing.JLabel();
+        lblRecentSub = new javax.swing.JLabel();
+        btnViewAllBookings = new javax.swing.JButton();
+        scrollRecentBookings = new javax.swing.JScrollPane();
+        tableRecentBookings = new javax.swing.JTable();
         Student = new javax.swing.JPanel();
         panelStudentHeader = new javax.swing.JPanel();
         panelStudentHeaderLeft = new javax.swing.JPanel();
@@ -879,62 +690,6 @@ public class Dashbord extends javax.swing.JFrame {
         lblUserID = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         CheckFirstTimeLog = new javax.swing.JCheckBox();
-        Dashbord = new javax.swing.JPanel();
-        panelDashboardCenter = new javax.swing.JPanel();
-        panelTopSection = new javax.swing.JPanel();
-        panelSummaryCards = new javax.swing.JPanel();
-        panelCardStudents = new javax.swing.JPanel();
-        lblIconStudents = new javax.swing.JLabel();
-        panelCardStudentsText = new javax.swing.JPanel();
-        lblTitleStudents = new javax.swing.JLabel();
-        lblCountStudents = new javax.swing.JLabel();
-        lblTrendStudents = new javax.swing.JLabel();
-        panelCardBookings = new javax.swing.JPanel();
-        lblIconBookings = new javax.swing.JLabel();
-        panelCardBookingsText = new javax.swing.JPanel();
-        lblTitleBookings = new javax.swing.JLabel();
-        lblCountBookings = new javax.swing.JLabel();
-        lblTrendBookings = new javax.swing.JLabel();
-        panelCardInstructors = new javax.swing.JPanel();
-        lblIconInstructors = new javax.swing.JLabel();
-        panelCardInstructorsText = new javax.swing.JPanel();
-        lblTitleInstructors = new javax.swing.JLabel();
-        lblCountInstructors = new javax.swing.JLabel();
-        lblTrendInstructors = new javax.swing.JLabel();
-        panelCardVehicles = new javax.swing.JPanel();
-        lblIconVehicles = new javax.swing.JLabel();
-        panelCardVehiclesText = new javax.swing.JPanel();
-        lblTitleVehicles = new javax.swing.JLabel();
-        lblCountVehicles = new javax.swing.JLabel();
-        lblTrendVehicles = new javax.swing.JLabel();
-        panelQuickActions = new javax.swing.JPanel();
-        panelQuickHeader = new javax.swing.JPanel();
-        lblQuickTitle = new javax.swing.JLabel();
-        lblQuickSub = new javax.swing.JLabel();
-        panelQuickGrid = new javax.swing.JPanel();
-        panelActionRegister = new javax.swing.JPanel();
-        panelActionRegText = new javax.swing.JPanel();
-        lblActionRegTitle = new javax.swing.JLabel();
-        lblActionRegDesc = new javax.swing.JLabel();
-        btnActionRegister = new javax.swing.JButton();
-        panelActionBooking = new javax.swing.JPanel();
-        panelActionBkText = new javax.swing.JPanel();
-        lblActionBkTitle = new javax.swing.JLabel();
-        lblActionBkDesc = new javax.swing.JLabel();
-        btnActionBooking = new javax.swing.JButton();
-        panelActionManage = new javax.swing.JPanel();
-        panelActionMgText = new javax.swing.JPanel();
-        lblActionMgTitle = new javax.swing.JLabel();
-        lblActionMgDesc = new javax.swing.JLabel();
-        btnActionManage = new javax.swing.JButton();
-        panelRecentBookings = new javax.swing.JPanel();
-        panelRecentHeader = new javax.swing.JPanel();
-        panelRecentTitles = new javax.swing.JPanel();
-        lblRecentTitle = new javax.swing.JLabel();
-        lblRecentSub = new javax.swing.JLabel();
-        btnViewAllBookings = new javax.swing.JButton();
-        scrollRecentBookings = new javax.swing.JScrollPane();
-        tableRecentBookings = new javax.swing.JTable();
         Instructors = new javax.swing.JPanel();
         panelInstHeader = new javax.swing.JPanel();
         panelInstHeaderLeft = new javax.swing.JPanel();
@@ -1282,6 +1037,350 @@ public class Dashbord extends javax.swing.JFrame {
 
         Contructor.setLayout(new java.awt.CardLayout());
 
+        Dashbord.setBackground(new java.awt.Color(248, 250, 252));
+        Dashbord.setLayout(new java.awt.BorderLayout());
+
+        panelDashboardCenter.setBackground(new java.awt.Color(248, 250, 252));
+        panelDashboardCenter.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 20, 24));
+        panelDashboardCenter.setLayout(new java.awt.BorderLayout());
+
+        panelTopSection.setBackground(new java.awt.Color(248, 250, 252));
+        panelTopSection.setLayout(new java.awt.BorderLayout());
+
+        panelSummaryCards.setBackground(new java.awt.Color(248, 250, 252));
+        panelSummaryCards.setPreferredSize(new java.awt.Dimension(800, 110));
+        panelSummaryCards.setLayout(new java.awt.GridLayout(1, 4, 16, 0));
+
+        panelCardStudents.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardStudents.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardStudents.setLayout(new java.awt.BorderLayout());
+
+        lblIconStudents.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconStudents.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_student_male_32px.png"))); // NOI18N
+        panelCardStudents.add(lblIconStudents, java.awt.BorderLayout.LINE_START);
+
+        panelCardStudentsText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardStudentsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardStudentsText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleStudents.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleStudents.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleStudents.setText("Total Students");
+        panelCardStudentsText.add(lblTitleStudents);
+
+        lblCountStudents.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountStudents.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountStudents.setText("148");
+        panelCardStudentsText.add(lblCountStudents);
+
+        lblTrendStudents.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendStudents.setForeground(new java.awt.Color(22, 163, 74));
+        lblTrendStudents.setText("+12% this month");
+        panelCardStudentsText.add(lblTrendStudents);
+
+        panelCardStudents.add(panelCardStudentsText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardStudents);
+
+        panelCardBookings.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardBookings.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardBookings.setLayout(new java.awt.BorderLayout());
+
+        lblIconBookings.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconBookings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_new_ticket_32px.png"))); // NOI18N
+        panelCardBookings.add(lblIconBookings, java.awt.BorderLayout.LINE_START);
+
+        panelCardBookingsText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardBookingsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardBookingsText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleBookings.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleBookings.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleBookings.setText("Today's Bookings");
+        panelCardBookingsText.add(lblTitleBookings);
+
+        lblCountBookings.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountBookings.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountBookings.setText("14");
+        panelCardBookingsText.add(lblCountBookings);
+
+        lblTrendBookings.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendBookings.setForeground(new java.awt.Color(13, 148, 136));
+        lblTrendBookings.setText("4 in progress");
+        panelCardBookingsText.add(lblTrendBookings);
+
+        panelCardBookings.add(panelCardBookingsText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardBookings);
+
+        panelCardInstructors.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardInstructors.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardInstructors.setLayout(new java.awt.BorderLayout());
+
+        lblIconInstructors.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconInstructors.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_personal_trainer_32px.png"))); // NOI18N
+        panelCardInstructors.add(lblIconInstructors, java.awt.BorderLayout.LINE_START);
+
+        panelCardInstructorsText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardInstructorsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardInstructorsText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleInstructors.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleInstructors.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleInstructors.setText("Total Instructors");
+        panelCardInstructorsText.add(lblTitleInstructors);
+
+        lblCountInstructors.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountInstructors.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountInstructors.setText("8");
+        panelCardInstructorsText.add(lblCountInstructors);
+
+        lblTrendInstructors.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendInstructors.setForeground(new java.awt.Color(79, 70, 229));
+        lblTrendInstructors.setText("All active on duty");
+        panelCardInstructorsText.add(lblTrendInstructors);
+
+        panelCardInstructors.add(panelCardInstructorsText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardInstructors);
+
+        panelCardVehicles.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardVehicles.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelCardVehicles.setLayout(new java.awt.BorderLayout());
+
+        lblIconVehicles.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
+        lblIconVehicles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_car_32px.png"))); // NOI18N
+        panelCardVehicles.add(lblIconVehicles, java.awt.BorderLayout.LINE_START);
+
+        panelCardVehiclesText.setBackground(new java.awt.Color(255, 255, 255));
+        panelCardVehiclesText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
+        panelCardVehiclesText.setLayout(new java.awt.GridLayout(3, 1));
+
+        lblTitleVehicles.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lblTitleVehicles.setForeground(new java.awt.Color(100, 116, 139));
+        lblTitleVehicles.setText("Total Vehicles");
+        panelCardVehiclesText.add(lblTitleVehicles);
+
+        lblCountVehicles.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblCountVehicles.setForeground(new java.awt.Color(15, 23, 42));
+        lblCountVehicles.setText("12");
+        panelCardVehiclesText.add(lblCountVehicles);
+
+        lblTrendVehicles.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
+        lblTrendVehicles.setForeground(new java.awt.Color(217, 119, 6));
+        lblTrendVehicles.setText("10 ready, 2 service");
+        panelCardVehiclesText.add(lblTrendVehicles);
+
+        panelCardVehicles.add(panelCardVehiclesText, java.awt.BorderLayout.CENTER);
+
+        panelSummaryCards.add(panelCardVehicles);
+
+        panelTopSection.add(panelSummaryCards, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickActions.setBackground(new java.awt.Color(248, 250, 252));
+        panelQuickActions.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 0, 12, 0));
+        panelQuickActions.setLayout(new java.awt.BorderLayout());
+
+        panelQuickHeader.setBackground(new java.awt.Color(248, 250, 252));
+        panelQuickHeader.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 4));
+
+        lblQuickTitle.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
+        lblQuickTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblQuickTitle.setText("Quick Actions");
+        panelQuickHeader.add(lblQuickTitle);
+
+        lblQuickSub.setForeground(new java.awt.Color(100, 116, 139));
+        lblQuickSub.setText("  — Common shortcuts for daily driving school workflow");
+        panelQuickHeader.add(lblQuickSub);
+
+        panelQuickActions.add(panelQuickHeader, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.setBackground(new java.awt.Color(248, 250, 252));
+        panelQuickGrid.setPreferredSize(new java.awt.Dimension(800, 72));
+        panelQuickGrid.setLayout(new java.awt.GridLayout(1, 3, 16, 0));
+
+        panelActionRegister.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionRegister.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelActionRegister.setLayout(new java.awt.BorderLayout());
+
+        panelActionRegText.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionRegText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
+        panelActionRegText.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblActionRegTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblActionRegTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblActionRegTitle.setText("Register New Student");
+        panelActionRegText.add(lblActionRegTitle);
+
+        lblActionRegDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblActionRegDesc.setForeground(new java.awt.Color(100, 116, 139));
+        lblActionRegDesc.setText("Enroll student & licence class");
+        panelActionRegText.add(lblActionRegDesc);
+
+        panelActionRegister.add(panelActionRegText, java.awt.BorderLayout.CENTER);
+
+        btnActionRegister.setBackground(new java.awt.Color(37, 99, 235));
+        btnActionRegister.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnActionRegister.setForeground(new java.awt.Color(255, 255, 255));
+        btnActionRegister.setText("+ Register");
+        btnActionRegister.setBorder(null);
+        btnActionRegister.setFocusPainted(false);
+        btnActionRegister.setPreferredSize(new java.awt.Dimension(90, 32));
+        btnActionRegister.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnActionRegisterMouseClicked(evt);
+            }
+        });
+        panelActionRegister.add(btnActionRegister, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.add(panelActionRegister);
+
+        panelActionBooking.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionBooking.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelActionBooking.setLayout(new java.awt.BorderLayout());
+
+        panelActionBkText.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionBkText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
+        panelActionBkText.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblActionBkTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblActionBkTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblActionBkTitle.setText("Create Practical Booking");
+        panelActionBkText.add(lblActionBkTitle);
+
+        lblActionBkDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblActionBkDesc.setForeground(new java.awt.Color(100, 116, 139));
+        lblActionBkDesc.setText("Schedule driving lesson/test");
+        panelActionBkText.add(lblActionBkDesc);
+
+        panelActionBooking.add(panelActionBkText, java.awt.BorderLayout.CENTER);
+
+        btnActionBooking.setBackground(new java.awt.Color(13, 148, 136));
+        btnActionBooking.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnActionBooking.setForeground(new java.awt.Color(255, 255, 255));
+        btnActionBooking.setText("+ Booking");
+        btnActionBooking.setBorder(null);
+        btnActionBooking.setFocusPainted(false);
+        btnActionBooking.setPreferredSize(new java.awt.Dimension(90, 32));
+        btnActionBooking.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnActionBookingMouseClicked(evt);
+            }
+        });
+        panelActionBooking.add(btnActionBooking, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.add(panelActionBooking);
+
+        panelActionManage.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionManage.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelActionManage.setLayout(new java.awt.BorderLayout());
+
+        panelActionMgText.setBackground(new java.awt.Color(255, 255, 255));
+        panelActionMgText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
+        panelActionMgText.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblActionMgTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
+        lblActionMgTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblActionMgTitle.setText("Booking Management");
+        panelActionMgText.add(lblActionMgTitle);
+
+        lblActionMgDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
+        lblActionMgDesc.setForeground(new java.awt.Color(100, 116, 139));
+        lblActionMgDesc.setText("Assign instructors & slots");
+        panelActionMgText.add(lblActionMgDesc);
+
+        panelActionManage.add(panelActionMgText, java.awt.BorderLayout.CENTER);
+
+        btnActionManage.setBackground(new java.awt.Color(79, 70, 229));
+        btnActionManage.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnActionManage.setForeground(new java.awt.Color(255, 255, 255));
+        btnActionManage.setText("Manage →");
+        btnActionManage.setBorder(null);
+        btnActionManage.setFocusPainted(false);
+        btnActionManage.setPreferredSize(new java.awt.Dimension(90, 32));
+        btnActionManage.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnActionManageMouseClicked(evt);
+            }
+        });
+        panelActionManage.add(btnActionManage, java.awt.BorderLayout.PAGE_START);
+
+        panelQuickGrid.add(panelActionManage);
+
+        panelQuickActions.add(panelQuickGrid, java.awt.BorderLayout.CENTER);
+
+        panelTopSection.add(panelQuickActions, java.awt.BorderLayout.CENTER);
+
+        panelDashboardCenter.add(panelTopSection, java.awt.BorderLayout.PAGE_START);
+
+        panelRecentBookings.setBackground(new java.awt.Color(248, 250, 252));
+        panelRecentBookings.setLayout(new java.awt.BorderLayout());
+
+        panelRecentHeader.setBackground(new java.awt.Color(248, 250, 252));
+        panelRecentHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 0, 8, 0));
+        panelRecentHeader.setLayout(new java.awt.BorderLayout());
+
+        panelRecentTitles.setBackground(new java.awt.Color(248, 250, 252));
+        panelRecentTitles.setLayout(new java.awt.GridLayout(2, 1));
+
+        lblRecentTitle.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
+        lblRecentTitle.setForeground(new java.awt.Color(15, 23, 42));
+        lblRecentTitle.setText("Recent Practical Bookings");
+        panelRecentTitles.add(lblRecentTitle);
+
+        lblRecentSub.setForeground(new java.awt.Color(100, 116, 139));
+        lblRecentSub.setText("Latest student driving sessions and instructor assignments");
+        panelRecentTitles.add(lblRecentSub);
+
+        panelRecentHeader.add(panelRecentTitles, java.awt.BorderLayout.LINE_START);
+
+        btnViewAllBookings.setBackground(new java.awt.Color(241, 245, 249));
+        btnViewAllBookings.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        btnViewAllBookings.setForeground(new java.awt.Color(37, 99, 235));
+        btnViewAllBookings.setText("View All Bookings →");
+        btnViewAllBookings.setBorder(null);
+        btnViewAllBookings.setFocusPainted(false);
+        btnViewAllBookings.setPreferredSize(new java.awt.Dimension(150, 32));
+        panelRecentHeader.add(btnViewAllBookings, java.awt.BorderLayout.LINE_END);
+
+        panelRecentBookings.add(panelRecentHeader, java.awt.BorderLayout.PAGE_START);
+
+        scrollRecentBookings.setBackground(new java.awt.Color(255, 255, 255));
+        scrollRecentBookings.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        tableRecentBookings.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {"BK-1042", "Kasun Perera", "Kamal Silva", "Toyota Vitz (CAB-1234)", "Today, 09:30 AM", "Practical Driving", "Confirmed"},
+                {"BK-1043", "Nimali Fernando", "Sunil Perera", "Nissan March (WP-5678)", "Today, 11:00 AM", "Pre-Test Practice", "In Progress"},
+                {"BK-1044", "Dinesh Jayasinghe", "Kamal Silva", "Honda Fit (CAR-9012)", "Today, 02:00 PM", "Highway Driving", "Pending"},
+                {"BK-1045", "Sanduni Wickramasinghe", "Mahinda Alwis", "Toyota Vitz (CAB-1234)", "Tomorrow, 08:30 AM", "Parallel Parking", "Confirmed"},
+                {"BK-1046", "Ruwan Tharaka", "Sunil Perera", "Suzuki Alto (KV-3456)", "Tomorrow, 10:30 AM", "Night Driving", "Pending"},
+                {"BK-1047", "Anoma Senanayake", "Mahinda Alwis", "Nissan March (WP-5678)", "Tomorrow, 01:30 PM", "Mock Driving Exam", "Confirmed"}
+            },
+            new String [] {
+                "Booking ID", "Student Name", "Instructor", "Vehicle", "Date & Time", "Lesson Type", "Status"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tableRecentBookings.setRowHeight(36);
+        tableRecentBookings.setShowGrid(false);
+        scrollRecentBookings.setViewportView(tableRecentBookings);
+
+        panelRecentBookings.add(scrollRecentBookings, java.awt.BorderLayout.CENTER);
+
+        panelDashboardCenter.add(panelRecentBookings, java.awt.BorderLayout.CENTER);
+
+        Dashbord.add(panelDashboardCenter, java.awt.BorderLayout.CENTER);
+
+        Contructor.add(Dashbord, "cardDashboard");
+
         Student.setBackground(new java.awt.Color(248, 250, 252));
         Student.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 20, 24));
         Student.setLayout(new java.awt.BorderLayout(0, 14));
@@ -1385,12 +1484,14 @@ public class Dashbord extends javax.swing.JFrame {
         lblStudentClass.setText("Vehicle Class");
 
         cmbStudentClass.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbStudentClass.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Class B (Dual Purpose / Car)", "Class A (Motorcycle)", "Class B1 (Auto Light Vehicle)", "Class A & B (Combo)", "Class C (Heavy Vehicle)", "Class D (Bus)" }));
 
         lblStudentStatus.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
         lblStudentStatus.setForeground(new java.awt.Color(51, 65, 85));
         lblStudentStatus.setText("Learning Status");
 
         cmbStudentStatus.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbStudentStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Active Learner", "Theory Passed", "Practical Training", "Trial / Exam Ready", "Completed" }));
 
         btnAddStudent.setBackground(new java.awt.Color(37, 99, 235));
         btnAddStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
@@ -1824,350 +1925,6 @@ public class Dashbord extends javax.swing.JFrame {
 
         Contructor.add(user_Management, "cardUserManagement");
 
-        Dashbord.setBackground(new java.awt.Color(248, 250, 252));
-        Dashbord.setLayout(new java.awt.BorderLayout());
-
-        panelDashboardCenter.setBackground(new java.awt.Color(248, 250, 252));
-        panelDashboardCenter.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 20, 24));
-        panelDashboardCenter.setLayout(new java.awt.BorderLayout());
-
-        panelTopSection.setBackground(new java.awt.Color(248, 250, 252));
-        panelTopSection.setLayout(new java.awt.BorderLayout());
-
-        panelSummaryCards.setBackground(new java.awt.Color(248, 250, 252));
-        panelSummaryCards.setPreferredSize(new java.awt.Dimension(800, 110));
-        panelSummaryCards.setLayout(new java.awt.GridLayout(1, 4, 16, 0));
-
-        panelCardStudents.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardStudents.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        panelCardStudents.setLayout(new java.awt.BorderLayout());
-
-        lblIconStudents.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
-        lblIconStudents.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_student_male_32px.png"))); // NOI18N
-        panelCardStudents.add(lblIconStudents, java.awt.BorderLayout.LINE_START);
-
-        panelCardStudentsText.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardStudentsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        panelCardStudentsText.setLayout(new java.awt.GridLayout(3, 1));
-
-        lblTitleStudents.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lblTitleStudents.setForeground(new java.awt.Color(100, 116, 139));
-        lblTitleStudents.setText("Total Students");
-        panelCardStudentsText.add(lblTitleStudents);
-
-        lblCountStudents.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lblCountStudents.setForeground(new java.awt.Color(15, 23, 42));
-        lblCountStudents.setText("148");
-        panelCardStudentsText.add(lblCountStudents);
-
-        lblTrendStudents.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
-        lblTrendStudents.setForeground(new java.awt.Color(22, 163, 74));
-        lblTrendStudents.setText("+12% this month");
-        panelCardStudentsText.add(lblTrendStudents);
-
-        panelCardStudents.add(panelCardStudentsText, java.awt.BorderLayout.CENTER);
-
-        panelSummaryCards.add(panelCardStudents);
-
-        panelCardBookings.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardBookings.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        panelCardBookings.setLayout(new java.awt.BorderLayout());
-
-        lblIconBookings.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
-        lblIconBookings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_new_ticket_32px.png"))); // NOI18N
-        panelCardBookings.add(lblIconBookings, java.awt.BorderLayout.LINE_START);
-
-        panelCardBookingsText.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardBookingsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        panelCardBookingsText.setLayout(new java.awt.GridLayout(3, 1));
-
-        lblTitleBookings.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lblTitleBookings.setForeground(new java.awt.Color(100, 116, 139));
-        lblTitleBookings.setText("Today's Bookings");
-        panelCardBookingsText.add(lblTitleBookings);
-
-        lblCountBookings.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lblCountBookings.setForeground(new java.awt.Color(15, 23, 42));
-        lblCountBookings.setText("14");
-        panelCardBookingsText.add(lblCountBookings);
-
-        lblTrendBookings.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
-        lblTrendBookings.setForeground(new java.awt.Color(13, 148, 136));
-        lblTrendBookings.setText("4 in progress");
-        panelCardBookingsText.add(lblTrendBookings);
-
-        panelCardBookings.add(panelCardBookingsText, java.awt.BorderLayout.CENTER);
-
-        panelSummaryCards.add(panelCardBookings);
-
-        panelCardInstructors.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardInstructors.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        panelCardInstructors.setLayout(new java.awt.BorderLayout());
-
-        lblIconInstructors.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
-        lblIconInstructors.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_personal_trainer_32px.png"))); // NOI18N
-        panelCardInstructors.add(lblIconInstructors, java.awt.BorderLayout.LINE_START);
-
-        panelCardInstructorsText.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardInstructorsText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        panelCardInstructorsText.setLayout(new java.awt.GridLayout(3, 1));
-
-        lblTitleInstructors.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lblTitleInstructors.setForeground(new java.awt.Color(100, 116, 139));
-        lblTitleInstructors.setText("Total Instructors");
-        panelCardInstructorsText.add(lblTitleInstructors);
-
-        lblCountInstructors.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lblCountInstructors.setForeground(new java.awt.Color(15, 23, 42));
-        lblCountInstructors.setText("8");
-        panelCardInstructorsText.add(lblCountInstructors);
-
-        lblTrendInstructors.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
-        lblTrendInstructors.setForeground(new java.awt.Color(79, 70, 229));
-        lblTrendInstructors.setText("All active on duty");
-        panelCardInstructorsText.add(lblTrendInstructors);
-
-        panelCardInstructors.add(panelCardInstructorsText, java.awt.BorderLayout.CENTER);
-
-        panelSummaryCards.add(panelCardInstructors);
-
-        panelCardVehicles.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardVehicles.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        panelCardVehicles.setLayout(new java.awt.BorderLayout());
-
-        lblIconVehicles.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 10));
-        lblIconVehicles.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_car_32px.png"))); // NOI18N
-        panelCardVehicles.add(lblIconVehicles, java.awt.BorderLayout.LINE_START);
-
-        panelCardVehiclesText.setBackground(new java.awt.Color(255, 255, 255));
-        panelCardVehiclesText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 0, 10, 10));
-        panelCardVehiclesText.setLayout(new java.awt.GridLayout(3, 1));
-
-        lblTitleVehicles.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        lblTitleVehicles.setForeground(new java.awt.Color(100, 116, 139));
-        lblTitleVehicles.setText("Total Vehicles");
-        panelCardVehiclesText.add(lblTitleVehicles);
-
-        lblCountVehicles.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        lblCountVehicles.setForeground(new java.awt.Color(15, 23, 42));
-        lblCountVehicles.setText("12");
-        panelCardVehiclesText.add(lblCountVehicles);
-
-        lblTrendVehicles.setFont(new java.awt.Font("Segoe UI", 1, 11)); // NOI18N
-        lblTrendVehicles.setForeground(new java.awt.Color(217, 119, 6));
-        lblTrendVehicles.setText("10 ready, 2 service");
-        panelCardVehiclesText.add(lblTrendVehicles);
-
-        panelCardVehicles.add(panelCardVehiclesText, java.awt.BorderLayout.CENTER);
-
-        panelSummaryCards.add(panelCardVehicles);
-
-        panelTopSection.add(panelSummaryCards, java.awt.BorderLayout.PAGE_START);
-
-        panelQuickActions.setBackground(new java.awt.Color(248, 250, 252));
-        panelQuickActions.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 0, 12, 0));
-        panelQuickActions.setLayout(new java.awt.BorderLayout());
-
-        panelQuickHeader.setBackground(new java.awt.Color(248, 250, 252));
-        panelQuickHeader.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 4));
-
-        lblQuickTitle.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
-        lblQuickTitle.setForeground(new java.awt.Color(15, 23, 42));
-        lblQuickTitle.setText("Quick Actions");
-        panelQuickHeader.add(lblQuickTitle);
-
-        lblQuickSub.setForeground(new java.awt.Color(100, 116, 139));
-        lblQuickSub.setText("  — Common shortcuts for daily driving school workflow");
-        panelQuickHeader.add(lblQuickSub);
-
-        panelQuickActions.add(panelQuickHeader, java.awt.BorderLayout.PAGE_START);
-
-        panelQuickGrid.setBackground(new java.awt.Color(248, 250, 252));
-        panelQuickGrid.setPreferredSize(new java.awt.Dimension(800, 72));
-        panelQuickGrid.setLayout(new java.awt.GridLayout(1, 3, 16, 0));
-
-        panelActionRegister.setBackground(new java.awt.Color(255, 255, 255));
-        panelActionRegister.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        panelActionRegister.setLayout(new java.awt.BorderLayout());
-
-        panelActionRegText.setBackground(new java.awt.Color(255, 255, 255));
-        panelActionRegText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
-        panelActionRegText.setLayout(new java.awt.GridLayout(2, 1));
-
-        lblActionRegTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
-        lblActionRegTitle.setForeground(new java.awt.Color(15, 23, 42));
-        lblActionRegTitle.setText("Register New Student");
-        panelActionRegText.add(lblActionRegTitle);
-
-        lblActionRegDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
-        lblActionRegDesc.setForeground(new java.awt.Color(100, 116, 139));
-        lblActionRegDesc.setText("Enroll student & licence class");
-        panelActionRegText.add(lblActionRegDesc);
-
-        panelActionRegister.add(panelActionRegText, java.awt.BorderLayout.CENTER);
-
-        btnActionRegister.setBackground(new java.awt.Color(37, 99, 235));
-        btnActionRegister.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btnActionRegister.setForeground(new java.awt.Color(255, 255, 255));
-        btnActionRegister.setText("+ Register");
-        btnActionRegister.setBorder(null);
-        btnActionRegister.setFocusPainted(false);
-        btnActionRegister.setPreferredSize(new java.awt.Dimension(90, 32));
-        btnActionRegister.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnActionRegisterMouseClicked(evt);
-            }
-        });
-        panelActionRegister.add(btnActionRegister, java.awt.BorderLayout.PAGE_START);
-
-        panelQuickGrid.add(panelActionRegister);
-
-        panelActionBooking.setBackground(new java.awt.Color(255, 255, 255));
-        panelActionBooking.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        panelActionBooking.setLayout(new java.awt.BorderLayout());
-
-        panelActionBkText.setBackground(new java.awt.Color(255, 255, 255));
-        panelActionBkText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
-        panelActionBkText.setLayout(new java.awt.GridLayout(2, 1));
-
-        lblActionBkTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
-        lblActionBkTitle.setForeground(new java.awt.Color(15, 23, 42));
-        lblActionBkTitle.setText("Create Practical Booking");
-        panelActionBkText.add(lblActionBkTitle);
-
-        lblActionBkDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
-        lblActionBkDesc.setForeground(new java.awt.Color(100, 116, 139));
-        lblActionBkDesc.setText("Schedule driving lesson/test");
-        panelActionBkText.add(lblActionBkDesc);
-
-        panelActionBooking.add(panelActionBkText, java.awt.BorderLayout.CENTER);
-
-        btnActionBooking.setBackground(new java.awt.Color(13, 148, 136));
-        btnActionBooking.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btnActionBooking.setForeground(new java.awt.Color(255, 255, 255));
-        btnActionBooking.setText("+ Booking");
-        btnActionBooking.setBorder(null);
-        btnActionBooking.setFocusPainted(false);
-        btnActionBooking.setPreferredSize(new java.awt.Dimension(90, 32));
-        btnActionBooking.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnActionBookingMouseClicked(evt);
-            }
-        });
-        panelActionBooking.add(btnActionBooking, java.awt.BorderLayout.PAGE_START);
-
-        panelQuickGrid.add(panelActionBooking);
-
-        panelActionManage.setBackground(new java.awt.Color(255, 255, 255));
-        panelActionManage.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        panelActionManage.setLayout(new java.awt.BorderLayout());
-
-        panelActionMgText.setBackground(new java.awt.Color(255, 255, 255));
-        panelActionMgText.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 14, 8, 10));
-        panelActionMgText.setLayout(new java.awt.GridLayout(2, 1));
-
-        lblActionMgTitle.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
-        lblActionMgTitle.setForeground(new java.awt.Color(15, 23, 42));
-        lblActionMgTitle.setText("Booking Management");
-        panelActionMgText.add(lblActionMgTitle);
-
-        lblActionMgDesc.setFont(new java.awt.Font("Segoe UI", 0, 11)); // NOI18N
-        lblActionMgDesc.setForeground(new java.awt.Color(100, 116, 139));
-        lblActionMgDesc.setText("Assign instructors & slots");
-        panelActionMgText.add(lblActionMgDesc);
-
-        panelActionManage.add(panelActionMgText, java.awt.BorderLayout.CENTER);
-
-        btnActionManage.setBackground(new java.awt.Color(79, 70, 229));
-        btnActionManage.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btnActionManage.setForeground(new java.awt.Color(255, 255, 255));
-        btnActionManage.setText("Manage →");
-        btnActionManage.setBorder(null);
-        btnActionManage.setFocusPainted(false);
-        btnActionManage.setPreferredSize(new java.awt.Dimension(90, 32));
-        btnActionManage.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                btnActionManageMouseClicked(evt);
-            }
-        });
-        panelActionManage.add(btnActionManage, java.awt.BorderLayout.PAGE_START);
-
-        panelQuickGrid.add(panelActionManage);
-
-        panelQuickActions.add(panelQuickGrid, java.awt.BorderLayout.CENTER);
-
-        panelTopSection.add(panelQuickActions, java.awt.BorderLayout.CENTER);
-
-        panelDashboardCenter.add(panelTopSection, java.awt.BorderLayout.PAGE_START);
-
-        panelRecentBookings.setBackground(new java.awt.Color(248, 250, 252));
-        panelRecentBookings.setLayout(new java.awt.BorderLayout());
-
-        panelRecentHeader.setBackground(new java.awt.Color(248, 250, 252));
-        panelRecentHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 0, 8, 0));
-        panelRecentHeader.setLayout(new java.awt.BorderLayout());
-
-        panelRecentTitles.setBackground(new java.awt.Color(248, 250, 252));
-        panelRecentTitles.setLayout(new java.awt.GridLayout(2, 1));
-
-        lblRecentTitle.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
-        lblRecentTitle.setForeground(new java.awt.Color(15, 23, 42));
-        lblRecentTitle.setText("Recent Practical Bookings");
-        panelRecentTitles.add(lblRecentTitle);
-
-        lblRecentSub.setForeground(new java.awt.Color(100, 116, 139));
-        lblRecentSub.setText("Latest student driving sessions and instructor assignments");
-        panelRecentTitles.add(lblRecentSub);
-
-        panelRecentHeader.add(panelRecentTitles, java.awt.BorderLayout.LINE_START);
-
-        btnViewAllBookings.setBackground(new java.awt.Color(241, 245, 249));
-        btnViewAllBookings.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        btnViewAllBookings.setForeground(new java.awt.Color(37, 99, 235));
-        btnViewAllBookings.setText("View All Bookings →");
-        btnViewAllBookings.setBorder(null);
-        btnViewAllBookings.setFocusPainted(false);
-        btnViewAllBookings.setPreferredSize(new java.awt.Dimension(150, 32));
-        panelRecentHeader.add(btnViewAllBookings, java.awt.BorderLayout.LINE_END);
-
-        panelRecentBookings.add(panelRecentHeader, java.awt.BorderLayout.PAGE_START);
-
-        scrollRecentBookings.setBackground(new java.awt.Color(255, 255, 255));
-        scrollRecentBookings.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-        tableRecentBookings.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"BK-1042", "Kasun Perera", "Kamal Silva", "Toyota Vitz (CAB-1234)", "Today, 09:30 AM", "Practical Driving", "Confirmed"},
-                {"BK-1043", "Nimali Fernando", "Sunil Perera", "Nissan March (WP-5678)", "Today, 11:00 AM", "Pre-Test Practice", "In Progress"},
-                {"BK-1044", "Dinesh Jayasinghe", "Kamal Silva", "Honda Fit (CAR-9012)", "Today, 02:00 PM", "Highway Driving", "Pending"},
-                {"BK-1045", "Sanduni Wickramasinghe", "Mahinda Alwis", "Toyota Vitz (CAB-1234)", "Tomorrow, 08:30 AM", "Parallel Parking", "Confirmed"},
-                {"BK-1046", "Ruwan Tharaka", "Sunil Perera", "Suzuki Alto (KV-3456)", "Tomorrow, 10:30 AM", "Night Driving", "Pending"},
-                {"BK-1047", "Anoma Senanayake", "Mahinda Alwis", "Nissan March (WP-5678)", "Tomorrow, 01:30 PM", "Mock Driving Exam", "Confirmed"}
-            },
-            new String [] {
-                "Booking ID", "Student Name", "Instructor", "Vehicle", "Date & Time", "Lesson Type", "Status"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        tableRecentBookings.setRowHeight(36);
-        tableRecentBookings.setShowGrid(false);
-        scrollRecentBookings.setViewportView(tableRecentBookings);
-
-        panelRecentBookings.add(scrollRecentBookings, java.awt.BorderLayout.CENTER);
-
-        panelDashboardCenter.add(panelRecentBookings, java.awt.BorderLayout.CENTER);
-
-        Dashbord.add(panelDashboardCenter, java.awt.BorderLayout.CENTER);
-
-        Contructor.add(Dashbord, "cardDashboard");
-
         Instructors.setBackground(new java.awt.Color(248, 250, 252));
         Instructors.setLayout(new java.awt.BorderLayout(14, 14));
 
@@ -2343,6 +2100,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelInstFormFields.add(lblInstCategory);
 
         cmbInstCategory.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbInstCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Class B (Dual Purpose / Car)", "Class A (Motorcycle)", "Class B1 (Auto Light Vehicle)", " Class A & B (Combo)", "Class C (Heavy Vehicle)", "Class D (Bus)" }));
         panelInstFormFields.add(cmbInstCategory);
 
         lblInstStatus.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2351,6 +2109,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelInstFormFields.add(lblInstStatus);
 
         cmbInstStatus.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbInstStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " Available", "On Duty", "On Leave" }));
         panelInstFormFields.add(cmbInstStatus);
 
         scrollInstForm.setViewportView(panelInstFormFields);
@@ -2426,6 +2185,7 @@ public class Dashbord extends javax.swing.JFrame {
         txtInstSearch.setPreferredSize(new java.awt.Dimension(170, 32));
         panelInstSearchFilter.add(txtInstSearch);
 
+        cmbInstFilterStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All Statuses", "Available", "On Duty", "On Leave" }));
         cmbInstFilterStatus.setPreferredSize(new java.awt.Dimension(120, 32));
         panelInstSearchFilter.add(cmbInstFilterStatus);
 
@@ -2643,6 +2403,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelVehFormFields.add(lblVehCategory);
 
         cmbVehCategory.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbVehCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Class B (Dual Purpose / Car)", "Class A (Motorcycle)", "Class B1 (Auto Light Vehicle)", "Class A & B (Combo)", "Class C (Heavy Vehicle / Van)", "Class D (Bus)" }));
         panelVehFormFields.add(cmbVehCategory);
 
         lblVehTransmission.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2651,6 +2412,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelVehFormFields.add(lblVehTransmission);
 
         cmbVehTransmission.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbVehTransmission.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Auto", "Manual" }));
         panelVehFormFields.add(cmbVehTransmission);
 
         lblVehFuel.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2659,6 +2421,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelVehFormFields.add(lblVehFuel);
 
         cmbVehFuel.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbVehFuel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Petrol", "Diesel", "Hybrid", "Electric" }));
         panelVehFormFields.add(cmbVehFuel);
 
         lblVehStatus.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2667,6 +2430,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelVehFormFields.add(lblVehStatus);
 
         cmbVehStatus.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbVehStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Available", "In Session", "Under Maintenance" }));
         panelVehFormFields.add(cmbVehStatus);
 
         lblVehMileage.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2751,6 +2515,7 @@ public class Dashbord extends javax.swing.JFrame {
         txtVehSearch.setPreferredSize(new java.awt.Dimension(170, 32));
         panelVehSearchFilter.add(txtVehSearch);
 
+        cmbVehFilterStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "All Statuses", "Available", "In Session", "Under Maintenance" }));
         cmbVehFilterStatus.setPreferredSize(new java.awt.Dimension(130, 32));
         panelVehSearchFilter.add(cmbVehFilterStatus);
 
@@ -2792,6 +2557,11 @@ public class Dashbord extends javax.swing.JFrame {
         tableVehicles.setRowHeight(32);
         tableVehicles.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tableVehicles.setShowGrid(false);
+        tableVehicles.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableVehiclesMouseClicked(evt);
+            }
+        });
         scrollVehTable.setViewportView(tableVehicles);
 
         panelVehTableCard.add(scrollVehTable, java.awt.BorderLayout.CENTER);
@@ -5012,6 +4782,72 @@ public class Dashbord extends javax.swing.JFrame {
     private void btnBkAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkAddActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnBkAddActionPerformed
+
+    private void tableVehiclesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableVehiclesMouseClicked
+        int row = tableVehicles.getSelectedRow();
+        if (row >= 0) {
+            String vehIdStr = String.valueOf(tableVehicles.getValueAt(row, 0));
+            txtVehId.setText(vehIdStr);
+            txtVehModel.setText(String.valueOf(tableVehicles.getValueAt(row, 1)));
+            txtVehPlate.setText(String.valueOf(tableVehicles.getValueAt(row, 2)));
+
+            String vClass = String.valueOf(tableVehicles.getValueAt(row, 3));
+            for (int i = 0; i < cmbVehCategory.getItemCount(); i++) {
+                if (cmbVehCategory.getItemAt(i).equalsIgnoreCase(vClass) || cmbVehCategory.getItemAt(i).contains(vClass)) {
+                    cmbVehCategory.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String trans = String.valueOf(tableVehicles.getValueAt(row, 4));
+            for (int i = 0; i < cmbVehTransmission.getItemCount(); i++) {
+                if (cmbVehTransmission.getItemAt(i).equalsIgnoreCase(trans)) {
+                    cmbVehTransmission.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String fuel = String.valueOf(tableVehicles.getValueAt(row, 5));
+            for (int i = 0; i < cmbVehFuel.getItemCount(); i++) {
+                if (cmbVehFuel.getItemAt(i).equalsIgnoreCase(fuel)) {
+                    cmbVehFuel.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String status = String.valueOf(tableVehicles.getValueAt(row, 6));
+            for (int i = 0; i < cmbVehStatus.getItemCount(); i++) {
+                if (cmbVehStatus.getItemAt(i).equalsIgnoreCase(status)) {
+                    cmbVehStatus.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            try {
+                int cleanId = Integer.parseInt(vehIdStr.replaceAll("[^0-9]", ""));
+                Connection conn = getConnection();
+                if (conn != null) {
+                    String mSql = "SELECT mileage FROM vehicles WHERE vehicle_id = ?";
+                    try (PreparedStatement mPst = conn.prepareStatement(mSql)) {
+                        mPst.setInt(1, cleanId);
+                        try (ResultSet mRs = mPst.executeQuery()) {
+                            if (mRs.next()) {
+                                String mil = mRs.getString("mileage");
+                                txtVehMileage.setText(mil != null ? mil : "");
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Failed to load vehicle mileage", ex);
+            }
+
+            btnVehAdd.setVisible(false);
+            btnVehUpdate.setVisible(true);
+            btnVehDelete.setVisible(true);
+            btnVehClear.setVisible(true);
+        }
+    }//GEN-LAST:event_tableVehiclesMouseClicked
 
     /**
      * @param args the command line arguments
