@@ -65,6 +65,8 @@ CREATE TABLE IF NOT EXISTS `students` (
   `nic` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `phone` varchar(15) NOT NULL,
   `address` varchar(200) DEFAULT NULL,
+  `vehicle_class` varchar(50) DEFAULT 'Class B (Dual Purpose / Car)',
+  `status` varchar(30) DEFAULT 'Active Learner',
   PRIMARY KEY (`student_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
