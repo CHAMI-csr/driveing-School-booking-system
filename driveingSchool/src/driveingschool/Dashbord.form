@@ -4975,6 +4975,16 @@
                                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                                       <Font name="Segoe UI" size="13" style="0"/>
                                     </Property>
+                                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                                      <StringArray count="6">
+                                        <StringItem index="0" value="Basic Driving Skills"/>
+                                        <StringItem index="1" value="Highway &amp; Parking"/>
+                                        <StringItem index="2" value="Reverse &amp; Hill Start"/>
+                                        <StringItem index="3" value="City Traffic Maneuvering"/>
+                                        <StringItem index="4" value="Night Driving Practice"/>
+                                        <StringItem index="5" value="Commercial License Test"/>
+                                      </StringArray>
+                                    </Property>
                                   </Properties>
                                   <AuxValues>
                                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -5015,6 +5025,16 @@
                                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                                       <Font name="Segoe UI" size="13" style="0"/>
                                     </Property>
+                                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                                      <StringArray count="6">
+                                        <StringItem index="0" value="Pending"/>
+                                        <StringItem index="1" value="Confirmed"/>
+                                        <StringItem index="2" value="Booked"/>
+                                        <StringItem index="3" value="In Progress"/>
+                                        <StringItem index="4" value="Completed"/>
+                                        <StringItem index="5" value="Cancelled"/>
+                                      </StringArray>
+                                    </Property>
                                   </Properties>
                                   <AuxValues>
                                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -5035,6 +5055,14 @@
                                   <Properties>
                                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                                       <Font name="Segoe UI" size="13" style="0"/>
+                                    </Property>
+                                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                                      <StringArray count="4">
+                                        <StringItem index="0" value="Pending"/>
+                                        <StringItem index="1" value="Paid"/>
+                                        <StringItem index="2" value="Advance Paid"/>
+                                        <StringItem index="3" value="Overdue"/>
+                                      </StringArray>
                                     </Property>
                                   </Properties>
                                   <AuxValues>

@@ -2746,6 +2746,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelBkFormFields.add(lblBkLessonType);
 
         cmbBkLessonType.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbBkLessonType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Basic Driving Skills", "Highway & Parking", "Reverse & Hill Start", "City Traffic Maneuvering", "Night Driving Practice", "Commercial License Test" }));
         panelBkFormFields.add(cmbBkLessonType);
 
         lblBkDateTime.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2763,6 +2764,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelBkFormFields.add(lblBkStatus);
 
         cmbBkStatus.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbBkStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pending", "Confirmed", "Booked", "In Progress", "Completed", "Cancelled" }));
         panelBkFormFields.add(cmbBkStatus);
 
         lblBkPayment.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2771,6 +2773,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelBkFormFields.add(lblBkPayment);
 
         cmbBkPayment.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
+        cmbBkPayment.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Pending", "Paid", "Advance Paid", "Overdue" }));
         panelBkFormFields.add(cmbBkPayment);
 
         scrollBkForm.setViewportView(panelBkFormFields);
@@ -4784,7 +4787,140 @@ public class Dashbord extends javax.swing.JFrame {
     }//GEN-LAST:event_btnVehClearActionPerformed
 
     private void btnBkAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkAddActionPerformed
-        // TODO add your handling code here:
+        // ==========================================
+        // STEP 1: Get values from input fields
+        // ==========================================
+        String bookingId = txtBkId.getText().trim();
+        String student = (txtBkStudent.getSelectedItem() != null) ? txtBkStudent.getSelectedItem().toString().trim() : "";
+        String instructor = (cmbBkInstructor.getSelectedItem() != null) ? cmbBkInstructor.getSelectedItem().toString().trim() : "";
+        String vehicle = (cmbBkVehicle.getSelectedItem() != null) ? cmbBkVehicle.getSelectedItem().toString().trim() : "";
+        String lessonType = (cmbBkLessonType.getSelectedItem() != null) ? cmbBkLessonType.getSelectedItem().toString().trim() : "";
+        String dateTime = txtBkDateTime.getText().trim();
+        String status = (cmbBkStatus.getSelectedItem() != null) ? cmbBkStatus.getSelectedItem().toString().trim() : "";
+        String payment = (cmbBkPayment.getSelectedItem() != null) ? cmbBkPayment.getSelectedItem().toString().trim() : "";
+
+        // ==========================================
+        // STEP 2: Input Validations
+        // ==========================================
+        
+        // 1. Validate Student Selection
+        if (student.isEmpty() || student.equalsIgnoreCase("Select Student") || student.startsWith("--")) {
+            JOptionPane.showMessageDialog(this, "Please select a student!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtBkStudent.requestFocus();
+            return;
+        }
+
+        // 2. Validate Instructor Selection
+        if (instructor.isEmpty() || instructor.equalsIgnoreCase("Select Instructor") || instructor.startsWith("--")) {
+            JOptionPane.showMessageDialog(this, "Please select an assigned instructor!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            cmbBkInstructor.requestFocus();
+            return;
+        }
+
+        // 3. Validate Vehicle Selection
+        if (vehicle.isEmpty() || vehicle.equalsIgnoreCase("Select Vehicle") || vehicle.startsWith("--")) {
+            JOptionPane.showMessageDialog(this, "Please select a training vehicle!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            cmbBkVehicle.requestFocus();
+            return;
+        }
+
+        // 4. Validate Lesson / Training Type Selection
+        if (lessonType.isEmpty() || lessonType.equalsIgnoreCase("Select Lesson Type") || lessonType.startsWith("--")) {
+            lessonType = "Standard Practical"; // Default fallback
+        }
+
+        // 5. Validate Date & Time Slot
+        if (dateTime.isEmpty() || dateTime.equalsIgnoreCase("Select Date & Time")) {
+            JOptionPane.showMessageDialog(this, "Please enter or select Date & Time Slot!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtBkDateTime.requestFocus();
+            return;
+        }
+        if (dateTime.length() < 4) {
+            JOptionPane.showMessageDialog(this, "Date & Time Slot is too short! Please enter a valid date and time.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtBkDateTime.requestFocus();
+            return;
+        }
+
+        // 6. Fallback for Status and Payment if not selected
+        if (status.isEmpty() || status.startsWith("--")) {
+            status = "Booked";
+        }
+        if (payment.isEmpty() || payment.startsWith("--")) {
+            payment = "Pending";
+        }
+
+        // If Booking ID is blank or default, format it nicely
+        if (bookingId.isEmpty()) {
+            bookingId = "BK-" + (2042 + tableBookings.getRowCount());
+        }
+        String displayId = bookingId.startsWith("#") ? bookingId : "#" + bookingId;
+
+        // ==========================================
+        // STEP 3: Add Booking record to Table
+        // ==========================================
+        DefaultTableModel model = (DefaultTableModel) tableBookings.getModel();
+        
+        // Add new booking at the very top of the table (row 0)
+        model.insertRow(0, new Object[]{
+            displayId,
+            student,
+            instructor,
+            vehicle,
+            lessonType,
+            dateTime,
+            status
+        });
+
+        // ==========================================
+        // STEP 4: Update Summary Badges & Counters
+        // ==========================================
+        int totalRows = model.getRowCount();
+        lblBkBadgeTotalCount.setText(String.valueOf(totalRows));
+
+        int confirmedCount = 0;
+        int pendingCount = 0;
+        for (int i = 0; i < totalRows; i++) {
+            Object rowStatus = model.getValueAt(i, 6);
+            if (rowStatus != null) {
+                String st = rowStatus.toString().trim();
+                if (st.equalsIgnoreCase("Confirmed")) {
+                    confirmedCount++;
+                } else if (st.equalsIgnoreCase("Pending") || st.equalsIgnoreCase("Booked") || st.equalsIgnoreCase("In Progress")) {
+                    pendingCount++;
+                }
+            }
+        }
+        lblBkBadgeConfirmedCount.setText(String.valueOf(confirmedCount));
+        lblBkBadgePendingCount.setText(String.valueOf(pendingCount));
+
+        // ==========================================
+        // STEP 5: Success Message & Reset Form
+        // ==========================================
+        JOptionPane.showMessageDialog(this, "Booking slot created successfully!\nBooking ID: " + displayId, "Success", JOptionPane.INFORMATION_MESSAGE);
+
+        // Prepare the next booking ID
+        txtBkId.setText("BK-" + (2043 + totalRows));
+
+        // Reset inputs
+        if (txtBkStudent.getItemCount() > 0) {
+            txtBkStudent.setSelectedIndex(0);
+        }
+        if (cmbBkInstructor.getItemCount() > 0) {
+            cmbBkInstructor.setSelectedIndex(0);
+        }
+        if (cmbBkVehicle.getItemCount() > 0) {
+            cmbBkVehicle.setSelectedIndex(0);
+        }
+        if (cmbBkLessonType.getItemCount() > 0) {
+            cmbBkLessonType.setSelectedIndex(0);
+        }
+        txtBkDateTime.setText("");
+        if (cmbBkStatus.getItemCount() > 0) {
+            cmbBkStatus.setSelectedIndex(0);
+        }
+        if (cmbBkPayment.getItemCount() > 0) {
+            cmbBkPayment.setSelectedIndex(0);
+        }
     }//GEN-LAST:event_btnBkAddActionPerformed
 
     private void tableVehiclesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableVehiclesMouseClicked
