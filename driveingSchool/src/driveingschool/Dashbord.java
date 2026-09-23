@@ -824,7 +824,7 @@ public class Dashbord extends javax.swing.JFrame {
         lblBkId = new javax.swing.JLabel();
         txtBkId = new javax.swing.JTextField();
         lblBkStudent = new javax.swing.JLabel();
-        txtBkStudent = new javax.swing.JTextField();
+        txtBkStudent = new javax.swing.JComboBox<>();
         lblBkInstructor = new javax.swing.JLabel();
         cmbBkInstructor = new javax.swing.JComboBox<>();
         lblBkVehicle = new javax.swing.JLabel();
@@ -2722,7 +2722,6 @@ public class Dashbord extends javax.swing.JFrame {
         panelBkFormFields.add(lblBkStudent);
 
         txtBkStudent.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        txtBkStudent.setText("Chamika Silva");
         panelBkFormFields.add(txtBkStudent);
 
         lblBkInstructor.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2858,6 +2857,11 @@ public class Dashbord extends javax.swing.JFrame {
         panelBkTableCard.add(panelBkTableTop, java.awt.BorderLayout.PAGE_START);
 
         scrollBkTable.setBorder(null);
+        scrollBkTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                scrollBkTableMouseClicked(evt);
+            }
+        });
 
         tableBookings.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -4849,6 +4853,10 @@ public class Dashbord extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tableVehiclesMouseClicked
 
+    private void scrollBkTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_scrollBkTableMouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_scrollBkTableMouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -5211,7 +5219,7 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JTextField txtBkDateTime;
     private javax.swing.JTextField txtBkId;
     private javax.swing.JTextField txtBkSearch;
-    private javax.swing.JTextField txtBkStudent;
+    private javax.swing.JComboBox<String> txtBkStudent;
     private javax.swing.JTextField txtBmDate;
     private javax.swing.JTextField txtBmId;
     private javax.swing.JTextField txtBmRemarks;

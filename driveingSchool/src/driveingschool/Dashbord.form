@@ -4907,13 +4907,15 @@
                                     <Property name="text" type="java.lang.String" value="Student Name *"/>
                                   </Properties>
                                 </Component>
-                                <Component class="javax.swing.JTextField" name="txtBkStudent">
+                                <Component class="javax.swing.JComboBox" name="txtBkStudent">
                                   <Properties>
                                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                                       <Font name="Segoe UI" size="13" style="0"/>
                                     </Property>
-                                    <Property name="text" type="java.lang.String" value="Chamika Silva"/>
                                   </Properties>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+                                  </AuxValues>
                                 </Component>
                                 <Component class="javax.swing.JLabel" name="lblBkInstructor">
                                   <Properties>
@@ -5273,6 +5275,9 @@
                               <Border info="null"/>
                             </Property>
                           </Properties>
+                          <Events>
+                            <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="scrollBkTableMouseClicked"/>
+                          </Events>
                           <Constraints>
                             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout" value="org.netbeans.modules.form.compat2.layouts.DesignBorderLayout$BorderConstraintsDescription">
                               <BorderConstraints direction="Center"/>
