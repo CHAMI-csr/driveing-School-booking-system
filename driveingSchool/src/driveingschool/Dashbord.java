@@ -45,6 +45,10 @@ public class Dashbord extends javax.swing.JFrame {
             btnInstructors.setVisible(true);
             btnVehicle.setVisible(true);
             btnUserManagement.setVisible(true);
+        } else {
+            btnInstructors.setVisible(false);
+            btnVehicle.setVisible(false);
+            btnUserManagement.setVisible(false);
         }
         lblUsername.setText(this.currentUsername);
         lblRole.setText(this.currentRole);
@@ -60,6 +64,14 @@ public class Dashbord extends javax.swing.JFrame {
         // Initialize and load Students from DB
         initStudentComponents();
         loadStudents();
+
+        // Initialize and load Instructors from DB
+        initInstructorComponents();
+        loadInstructors();
+
+        // Initialize and load Vehicles from DB
+        initVehicleComponents();
+        loadVehicles();
     }
 
     private void switchCard(String cardName) {
@@ -194,6 +206,8 @@ public class Dashbord extends javax.swing.JFrame {
             txtSearchStudent.removeActionListener(al);
         }
         txtSearchStudent.addActionListener(e -> searchStudents());
+
+        clearStudentForm();
     }
 
     private void loadStudents() {
@@ -270,6 +284,506 @@ public class Dashbord extends javax.swing.JFrame {
             cmbStudentStatus.setSelectedIndex(0);
         }
         tableStudents.clearSelection();
+        btnAddStudent.setVisible(true);
+        btnUpdateStudent.setVisible(false);
+        btnDeleteStudent.setVisible(false);
+        btnClearStudent.setVisible(false);
+    }
+
+    private void ensureInstructorTableSchema() {
+        Connection conn = getConnection();
+        if (conn != null) {
+            try (java.sql.Statement stmt = conn.createStatement()) {
+                try {
+                    stmt.executeUpdate("ALTER TABLE instructors ADD COLUMN nic VARCHAR(12) DEFAULT NULL");
+                } catch (SQLException ignored) {
+                }
+                try {
+                    stmt.executeUpdate("ALTER TABLE instructors ADD COLUMN license_no VARCHAR(50) DEFAULT NULL");
+                } catch (SQLException ignored) {
+                }
+                try {
+                    stmt.executeUpdate("ALTER TABLE instructors ADD COLUMN vehicle_class VARCHAR(50) DEFAULT 'Class B (Dual Purpose / Car)'");
+                } catch (SQLException ignored) {
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Failed to verify instructor table schema", ex);
+            }
+        }
+    }
+
+    private void initInstructorComponents() {
+        ensureInstructorTableSchema();
+
+        if (cmbInstCategory.getItemCount() == 0) {
+            cmbInstCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "Class B (Dual Purpose / Car)",
+                "Class A (Motorcycle)",
+                "Class B1 (Auto Light Vehicle)",
+                "Class A & B (Combo)",
+                "Class C (Heavy Vehicle)",
+                "Class D (Bus)"
+            }));
+        }
+
+        if (cmbInstStatus.getItemCount() == 0) {
+            cmbInstStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "Available",
+                "On Duty",
+                "On Leave"
+            }));
+        }
+
+        if (cmbInstFilterStatus.getItemCount() == 0) {
+            cmbInstFilterStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "All Statuses",
+                "Available",
+                "On Duty",
+                "On Leave"
+            }));
+        }
+
+        for (java.awt.event.ActionListener al : btnInstRefresh.getActionListeners()) {
+            btnInstRefresh.removeActionListener(al);
+        }
+        btnInstRefresh.addActionListener(e -> {
+            String kw = txtInstSearch.getText().trim();
+            String st = (String) cmbInstFilterStatus.getSelectedItem();
+            loadInstructors(kw, st);
+        });
+
+        for (java.awt.event.ActionListener al : btnInstClear.getActionListeners()) {
+            btnInstClear.removeActionListener(al);
+        }
+        btnInstClear.addActionListener(e -> clearInstructorForm());
+
+        txtInstSearch.addActionListener(e -> {
+            String kw = txtInstSearch.getText().trim();
+            String st = (String) cmbInstFilterStatus.getSelectedItem();
+            loadInstructors(kw, st);
+        });
+
+        cmbInstFilterStatus.addActionListener(e -> {
+            String kw = txtInstSearch.getText().trim();
+            String st = (String) cmbInstFilterStatus.getSelectedItem();
+            loadInstructors(kw, st);
+        });
+
+        tableInstructors.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableInstructorsMouseClicked(evt);
+            }
+        });
+
+        clearInstructorForm();
+    }
+
+    private void loadInstructors() {
+        loadInstructors(null, null);
+    }
+
+    private void loadInstructors(String keyword, String statusFilter) {
+        DefaultTableModel dtm = (DefaultTableModel) tableInstructors.getModel();
+        dtm.setRowCount(0);
+        Connection conn = getConnection();
+        if (conn == null) {
+            return;
+        }
+
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty() && !keyword.equals("Search instructors..."));
+        boolean hasStatus = (statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equalsIgnoreCase("All Statuses"));
+
+        StringBuilder sql = new StringBuilder("SELECT instructor_id, full_name, phone, nic, license_no, vehicle_class, status FROM instructors WHERE 1=1 ");
+        if (hasKeyword) {
+            sql.append("AND (full_name LIKE ? OR phone LIKE ? OR nic LIKE ? OR license_no LIKE ? OR CAST(instructor_id AS CHAR) LIKE ?) ");
+        }
+        if (hasStatus) {
+            sql.append("AND status = ? ");
+        }
+        sql.append("ORDER BY instructor_id ASC");
+
+        try (PreparedStatement pst = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (hasKeyword) {
+                String pattern = "%" + keyword.trim() + "%";
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+            }
+            if (hasStatus) {
+                pst.setString(paramIndex++, statusFilter.trim());
+            }
+
+            try (ResultSet rs = pst.executeQuery()) {
+                int count = 0;
+                int activeCount = 0;
+                int availableCount = 0;
+                while (rs.next()) {
+                    Vector<Object> row = new Vector<>();
+                    int id = rs.getInt("instructor_id");
+                    row.add(String.format("INS-%03d", id));
+                    row.add(rs.getString("full_name"));
+                    row.add(rs.getString("phone") != null ? rs.getString("phone") : "");
+                    row.add(rs.getString("nic") != null ? rs.getString("nic") : "");
+                    row.add(rs.getString("license_no") != null ? rs.getString("license_no") : "");
+                    row.add(rs.getString("vehicle_class") != null ? rs.getString("vehicle_class") : "Class B (Dual Purpose / Car)");
+                    String status = rs.getString("status") != null ? rs.getString("status") : "Available";
+                    row.add(status);
+                    dtm.addRow(row);
+                    count++;
+                    if ("On Duty".equalsIgnoreCase(status)) {
+                        activeCount++;
+                    } else if ("Available".equalsIgnoreCase(status)) {
+                        availableCount++;
+                    }
+                }
+                lblInstTableCount.setText("Showing " + count + " instructors | Click a row to view or edit profile");
+                lblInstBadgeTotalCount.setText(String.valueOf(count));
+                lblInstBadgeActiveCount.setText(String.valueOf(activeCount));
+                lblInstBadgeAvailableCount.setText(String.valueOf(availableCount));
+                if (!hasKeyword && !hasStatus) {
+                    lblCountInstructors.setText(String.valueOf(count));
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to load instructors: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void clearInstructorForm() {
+        txtInstId.setText("INS-Auto");
+        txtInstFullName.setText("");
+        txtInstPhone.setText("");
+        txtInstNic.setText("");
+        txtInstLicense.setText("");
+        if (cmbInstCategory.getItemCount() > 0) {
+            cmbInstCategory.setSelectedIndex(0);
+        }
+        if (cmbInstStatus.getItemCount() > 0) {
+            cmbInstStatus.setSelectedIndex(0);
+        }
+        tableInstructors.clearSelection();
+        btnInstAdd.setVisible(true);
+        btnInstUpdate.setVisible(false);
+        btnInstDelete.setVisible(false);
+        btnInstClear.setVisible(false);
+    }
+
+    private void tableInstructorsMouseClicked(java.awt.event.MouseEvent evt) {
+        int row = tableInstructors.getSelectedRow();
+        if (row >= 0) {
+            txtInstId.setText(String.valueOf(tableInstructors.getValueAt(row, 0)));
+            txtInstFullName.setText(String.valueOf(tableInstructors.getValueAt(row, 1)));
+            txtInstPhone.setText(String.valueOf(tableInstructors.getValueAt(row, 2)));
+            txtInstNic.setText(String.valueOf(tableInstructors.getValueAt(row, 3)));
+            txtInstLicense.setText(String.valueOf(tableInstructors.getValueAt(row, 4)));
+            String vClass = String.valueOf(tableInstructors.getValueAt(row, 5));
+            for (int i = 0; i < cmbInstCategory.getItemCount(); i++) {
+                if (cmbInstCategory.getItemAt(i).equalsIgnoreCase(vClass) || cmbInstCategory.getItemAt(i).contains(vClass)) {
+                    cmbInstCategory.setSelectedIndex(i);
+                    break;
+                }
+            }
+            String status = String.valueOf(tableInstructors.getValueAt(row, 6));
+            for (int i = 0; i < cmbInstStatus.getItemCount(); i++) {
+                if (cmbInstStatus.getItemAt(i).equalsIgnoreCase(status)) {
+                    cmbInstStatus.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            btnInstAdd.setVisible(false);
+            btnInstUpdate.setVisible(true);
+            btnInstDelete.setVisible(true);
+            btnInstClear.setVisible(true);
+        }
+    }
+
+    private void ensureVehicleTableSchema() {
+        Connection conn = getConnection();
+        if (conn != null) {
+            try (java.sql.Statement stmt = conn.createStatement()) {
+                try {
+                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN model VARCHAR(100) DEFAULT NULL");
+                } catch (SQLException ignored) {
+                }
+                try {
+                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN vehicle_class VARCHAR(50) DEFAULT 'Class B (Dual Purpose / Car)'");
+                } catch (SQLException ignored) {
+                }
+                try {
+                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN transmission VARCHAR(20) DEFAULT 'Manual'");
+                } catch (SQLException ignored) {
+                }
+                try {
+                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN fuel_type VARCHAR(20) DEFAULT 'Petrol'");
+                } catch (SQLException ignored) {
+                }
+                try {
+                    stmt.executeUpdate("ALTER TABLE vehicles ADD COLUMN mileage VARCHAR(50) DEFAULT NULL");
+                } catch (SQLException ignored) {
+                }
+                try {
+                    stmt.executeUpdate("ALTER TABLE vehicles MODIFY COLUMN vehicle_type VARCHAR(50) DEFAULT 'Car'");
+                } catch (SQLException ignored) {
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Failed to verify vehicle table schema", ex);
+            }
+        }
+    }
+
+    private void initVehicleComponents() {
+        ensureVehicleTableSchema();
+
+        if (cmbVehCategory.getItemCount() == 0) {
+            cmbVehCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "Class B (Dual Purpose / Car)",
+                "Class A (Motorcycle)",
+                "Class B1 (Auto Light Vehicle)",
+                "Class A & B (Combo)",
+                "Class C (Heavy Vehicle / Van)",
+                "Class D (Bus)"
+            }));
+        }
+
+        if (cmbVehTransmission.getItemCount() == 0) {
+            cmbVehTransmission.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "Auto",
+                "Manual"
+            }));
+        }
+
+        if (cmbVehFuel.getItemCount() == 0) {
+            cmbVehFuel.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "Petrol",
+                "Diesel",
+                "Hybrid",
+                "Electric"
+            }));
+        }
+
+        if (cmbVehStatus.getItemCount() == 0) {
+            cmbVehStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "Available",
+                "In Session",
+                "Under Maintenance"
+            }));
+        }
+
+        if (cmbVehFilterStatus.getItemCount() == 0) {
+            cmbVehFilterStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{
+                "All Statuses",
+                "Available",
+                "In Session",
+                "Under Maintenance"
+            }));
+        }
+
+        for (java.awt.event.ActionListener al : btnVehRefresh.getActionListeners()) {
+            btnVehRefresh.removeActionListener(al);
+        }
+        btnVehRefresh.addActionListener(e -> {
+            String kw = txtVehSearch.getText().trim();
+            String st = (String) cmbVehFilterStatus.getSelectedItem();
+            loadVehicles(kw, st);
+        });
+
+        for (java.awt.event.ActionListener al : btnVehClear.getActionListeners()) {
+            btnVehClear.removeActionListener(al);
+        }
+        btnVehClear.addActionListener(e -> clearVehicleForm());
+
+        txtVehSearch.addActionListener(e -> {
+            String kw = txtVehSearch.getText().trim();
+            String st = (String) cmbVehFilterStatus.getSelectedItem();
+            loadVehicles(kw, st);
+        });
+
+        cmbVehFilterStatus.addActionListener(e -> {
+            String kw = txtVehSearch.getText().trim();
+            String st = (String) cmbVehFilterStatus.getSelectedItem();
+            loadVehicles(kw, st);
+        });
+
+        tableVehicles.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableVehiclesMouseClicked(evt);
+            }
+        });
+
+        clearVehicleForm();
+    }
+
+    private void loadVehicles() {
+        loadVehicles(null, null);
+    }
+
+    private void loadVehicles(String keyword, String statusFilter) {
+        DefaultTableModel dtm = (DefaultTableModel) tableVehicles.getModel();
+        dtm.setRowCount(0);
+        Connection conn = getConnection();
+        if (conn == null) {
+            return;
+        }
+
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty() && !keyword.equals("Search vehicles..."));
+        boolean hasStatus = (statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equalsIgnoreCase("All Statuses"));
+
+        StringBuilder sql = new StringBuilder("SELECT vehicle_id, model, vehicle_number, vehicle_class, transmission, fuel_type, status, mileage FROM vehicles WHERE 1=1 ");
+        if (hasKeyword) {
+            sql.append("AND (model LIKE ? OR vehicle_number LIKE ? OR vehicle_class LIKE ? OR transmission LIKE ? OR fuel_type LIKE ? OR CAST(vehicle_id AS CHAR) LIKE ?) ");
+        }
+        if (hasStatus) {
+            sql.append("AND status = ? ");
+        }
+        sql.append("ORDER BY vehicle_id ASC");
+
+        try (PreparedStatement pst = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            if (hasKeyword) {
+                String pattern = "%" + keyword.trim() + "%";
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+                pst.setString(paramIndex++, pattern);
+            }
+            if (hasStatus) {
+                pst.setString(paramIndex++, statusFilter.trim());
+            }
+
+            try (ResultSet rs = pst.executeQuery()) {
+                int count = 0;
+                int readyCount = 0;
+                int serviceCount = 0;
+                while (rs.next()) {
+                    Vector<Object> row = new Vector<>();
+                    int id = rs.getInt("vehicle_id");
+                    row.add(String.format("VEH-%03d", id));
+                    row.add(rs.getString("model") != null ? rs.getString("model") : "");
+                    row.add(rs.getString("vehicle_number") != null ? rs.getString("vehicle_number") : "");
+                    row.add(rs.getString("vehicle_class") != null ? rs.getString("vehicle_class") : "Class B (Dual Purpose / Car)");
+                    row.add(rs.getString("transmission") != null ? rs.getString("transmission") : "Manual");
+                    row.add(rs.getString("fuel_type") != null ? rs.getString("fuel_type") : "Petrol");
+                    String status = rs.getString("status") != null ? rs.getString("status") : "Available";
+                    row.add(status);
+                    dtm.addRow(row);
+                    count++;
+                    if ("Available".equalsIgnoreCase(status) || "Ready".equalsIgnoreCase(status)) {
+                        readyCount++;
+                    } else if ("Under Maintenance".equalsIgnoreCase(status)) {
+                        serviceCount++;
+                    }
+                }
+                lblVehTableCount.setText("Showing " + count + " vehicles | Click a row to view or edit details");
+                lblVehBadgeTotalCount.setText(String.valueOf(count));
+                lblVehBadgeReadyCount.setText(String.valueOf(readyCount));
+                lblVehBadgeServiceCount.setText(String.valueOf(serviceCount));
+                if (!hasKeyword && !hasStatus) {
+                    lblCountVehicles.setText(String.valueOf(count));
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to load vehicles: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void clearVehicleForm() {
+        txtVehId.setText("VEH-Auto");
+        txtVehModel.setText("");
+        txtVehPlate.setText("");
+        txtVehMileage.setText("");
+        if (cmbVehCategory.getItemCount() > 0) {
+            cmbVehCategory.setSelectedIndex(0);
+        }
+        if (cmbVehTransmission.getItemCount() > 0) {
+            cmbVehTransmission.setSelectedIndex(0);
+        }
+        if (cmbVehFuel.getItemCount() > 0) {
+            cmbVehFuel.setSelectedIndex(0);
+        }
+        if (cmbVehStatus.getItemCount() > 0) {
+            cmbVehStatus.setSelectedIndex(0);
+        }
+        tableVehicles.clearSelection();
+        btnVehAdd.setVisible(true);
+        btnVehUpdate.setVisible(false);
+        btnVehDelete.setVisible(false);
+        btnVehClear.setVisible(false);
+    }
+
+    private void tableVehiclesMouseClicked(java.awt.event.MouseEvent evt) {
+        int row = tableVehicles.getSelectedRow();
+        if (row >= 0) {
+            String vehIdStr = String.valueOf(tableVehicles.getValueAt(row, 0));
+            txtVehId.setText(vehIdStr);
+            txtVehModel.setText(String.valueOf(tableVehicles.getValueAt(row, 1)));
+            txtVehPlate.setText(String.valueOf(tableVehicles.getValueAt(row, 2)));
+
+            String vClass = String.valueOf(tableVehicles.getValueAt(row, 3));
+            for (int i = 0; i < cmbVehCategory.getItemCount(); i++) {
+                if (cmbVehCategory.getItemAt(i).equalsIgnoreCase(vClass) || cmbVehCategory.getItemAt(i).contains(vClass)) {
+                    cmbVehCategory.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String trans = String.valueOf(tableVehicles.getValueAt(row, 4));
+            for (int i = 0; i < cmbVehTransmission.getItemCount(); i++) {
+                if (cmbVehTransmission.getItemAt(i).equalsIgnoreCase(trans)) {
+                    cmbVehTransmission.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String fuel = String.valueOf(tableVehicles.getValueAt(row, 5));
+            for (int i = 0; i < cmbVehFuel.getItemCount(); i++) {
+                if (cmbVehFuel.getItemAt(i).equalsIgnoreCase(fuel)) {
+                    cmbVehFuel.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String status = String.valueOf(tableVehicles.getValueAt(row, 6));
+            for (int i = 0; i < cmbVehStatus.getItemCount(); i++) {
+                if (cmbVehStatus.getItemAt(i).equalsIgnoreCase(status)) {
+                    cmbVehStatus.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            try {
+                int cleanId = Integer.parseInt(vehIdStr.replaceAll("[^0-9]", ""));
+                Connection conn = getConnection();
+                if (conn != null) {
+                    String mSql = "SELECT mileage FROM vehicles WHERE vehicle_id = ?";
+                    try (PreparedStatement mPst = conn.prepareStatement(mSql)) {
+                        mPst.setInt(1, cleanId);
+                        try (ResultSet mRs = mPst.executeQuery()) {
+                            if (mRs.next()) {
+                                String mil = mRs.getString("mileage");
+                                txtVehMileage.setText(mil != null ? mil : "");
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                logger.log(Level.WARNING, "Failed to load vehicle mileage", ex);
+            }
+
+            btnVehAdd.setVisible(false);
+            btnVehUpdate.setVisible(true);
+            btnVehDelete.setVisible(true);
+            btnVehClear.setVisible(true);
+        }
     }
 
     /**
@@ -894,6 +1408,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnUpdateStudent.setText("Update");
         btnUpdateStudent.setBorder(null);
         btnUpdateStudent.setFocusPainted(false);
+        btnUpdateStudent.addActionListener(this::btnUpdateStudentActionPerformed);
 
         btnDeleteStudent.setBackground(new java.awt.Color(204, 0, 51));
         btnDeleteStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
@@ -902,6 +1417,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnDeleteStudent.setText("Delete");
         btnDeleteStudent.setBorder(null);
         btnDeleteStudent.setFocusPainted(false);
+        btnDeleteStudent.addActionListener(this::btnDeleteStudentActionPerformed);
 
         btnClearStudent.setBackground(new java.awt.Color(100, 116, 139));
         btnClearStudent.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
@@ -992,7 +1508,7 @@ public class Dashbord extends javax.swing.JFrame {
                 .addGroup(panelStudentFormCardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnDeleteStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnClearStudent, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(151, Short.MAX_VALUE))
         );
 
         panelStudentBody.add(panelStudentFormCard, java.awt.BorderLayout.LINE_START);
@@ -1301,7 +1817,7 @@ public class Dashbord extends javax.swing.JFrame {
                     .addComponent(btnUpdateUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(162, Short.MAX_VALUE))
         );
 
         user_Management.add(jPanel4, java.awt.BorderLayout.LINE_START);
@@ -1852,6 +2368,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnInstAdd.setText(" Add");
         btnInstAdd.setFocusPainted(false);
         btnInstAdd.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnInstAdd.addActionListener(this::btnInstAddActionPerformed);
         panelInstFormActions.add(btnInstAdd);
 
         btnInstUpdate.setBackground(new java.awt.Color(5, 150, 105));
@@ -1861,6 +2378,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnInstUpdate.setText(" Update");
         btnInstUpdate.setFocusPainted(false);
         btnInstUpdate.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnInstUpdate.addActionListener(this::btnInstUpdateActionPerformed);
         panelInstFormActions.add(btnInstUpdate);
 
         btnInstDelete.setBackground(new java.awt.Color(220, 38, 38));
@@ -1870,6 +2388,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnInstDelete.setText(" Delete");
         btnInstDelete.setFocusPainted(false);
         btnInstDelete.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnInstDelete.addActionListener(this::btnInstDeleteActionPerformed);
         panelInstFormActions.add(btnInstDelete);
 
         btnInstClear.setBackground(new java.awt.Color(100, 116, 139));
@@ -1879,6 +2398,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnInstClear.setText(" Clear");
         btnInstClear.setFocusPainted(false);
         btnInstClear.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnInstClear.addActionListener(this::btnInstClearActionPerformed);
         panelInstFormActions.add(btnInstClear);
 
         panelInstFormCard.add(panelInstFormActions, java.awt.BorderLayout.PAGE_END);
@@ -2173,6 +2693,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnVehAdd.setText(" Add");
         btnVehAdd.setFocusPainted(false);
         btnVehAdd.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnVehAdd.addActionListener(this::btnVehAddActionPerformed);
         panelVehFormActions.add(btnVehAdd);
 
         btnVehUpdate.setBackground(new java.awt.Color(5, 150, 105));
@@ -2182,6 +2703,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnVehUpdate.setText(" Update");
         btnVehUpdate.setFocusPainted(false);
         btnVehUpdate.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnVehUpdate.addActionListener(this::btnVehUpdateActionPerformed);
         panelVehFormActions.add(btnVehUpdate);
 
         btnVehDelete.setBackground(new java.awt.Color(220, 38, 38));
@@ -2191,6 +2713,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnVehDelete.setText(" Delete");
         btnVehDelete.setFocusPainted(false);
         btnVehDelete.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnVehDelete.addActionListener(this::btnVehDeleteActionPerformed);
         panelVehFormActions.add(btnVehDelete);
 
         btnVehClear.setBackground(new java.awt.Color(100, 116, 139));
@@ -2200,6 +2723,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnVehClear.setText(" Clear");
         btnVehClear.setFocusPainted(false);
         btnVehClear.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnVehClear.addActionListener(this::btnVehClearActionPerformed);
         panelVehFormActions.add(btnVehClear);
 
         panelVehFormCard.add(panelVehFormActions, java.awt.BorderLayout.PAGE_END);
@@ -2495,6 +3019,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBkAdd.setText(" Book Slot");
         btnBkAdd.setFocusPainted(false);
         btnBkAdd.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBkAdd.addActionListener(this::btnBkAddActionPerformed);
         panelBkFormActions.add(btnBkAdd);
 
         btnBkUpdate.setBackground(new java.awt.Color(5, 150, 105));
@@ -2951,6 +3476,10 @@ public class Dashbord extends javax.swing.JFrame {
     }//GEN-LAST:event_btnStudentActionPerformed
 
     private void btnClearStudentActionPerformed(java.awt.event.ActionEvent evt) {
+        btnAddStudent.setVisible(true);
+        btnUpdateStudent.setVisible(false);
+        btnDeleteStudent.setVisible(false);
+        btnClearStudent.setVisible(false);
         clearStudentForm();
     }
 
@@ -2982,6 +3511,11 @@ public class Dashbord extends javax.swing.JFrame {
                     break;
                 }
             }
+
+            btnAddStudent.setVisible(false);
+            btnUpdateStudent.setVisible(true);
+            btnDeleteStudent.setVisible(true);
+            btnClearStudent.setVisible(true);
         }
     }
 
@@ -2991,14 +3525,16 @@ public class Dashbord extends javax.swing.JFrame {
             return;
         }
         switchCard("cardInstructors");
+        loadInstructors();
     }//GEN-LAST:event_btnInstructorsActionPerformed
 
     private void btnVehicleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVehicleActionPerformed
         if (!currentRole.equalsIgnoreCase("Admin")) {
-            JOptionPane.showMessageDialog(this, "Access Denied! Only Administrators can access User Management.", "Access Denied", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Access Denied! Only Administrators can access Vehicle Management.", "Access Denied", JOptionPane.WARNING_MESSAGE);
             return;
         }
         switchCard("cardVehicles");
+        loadVehicles();
     }//GEN-LAST:event_btnVehicleActionPerformed
 
     private void btnBookingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBookingActionPerformed
@@ -3451,7 +3987,7 @@ public class Dashbord extends javax.swing.JFrame {
     }//GEN-LAST:event_jLabel10MouseEntered
 
     private void jLabel10MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel10MouseExited
-        jLabel10.setForeground(Color.white);
+        jLabel10.setForeground(Color.BLACK);
     }//GEN-LAST:event_jLabel10MouseExited
 
     private void btnAddStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddStudentActionPerformed
@@ -3576,12 +4112,906 @@ public class Dashbord extends javax.swing.JFrame {
     }//GEN-LAST:event_btnActionRegisterMouseClicked
 
     private void btnActionBookingMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActionBookingMouseClicked
-         switchCard("cardBookings");
+        switchCard("cardBookings");
     }//GEN-LAST:event_btnActionBookingMouseClicked
 
     private void btnActionManageMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActionManageMouseClicked
-       switchCard("cardBookingManagement");
+        switchCard("cardBookingManagement");
     }//GEN-LAST:event_btnActionManageMouseClicked
+
+    private void btnUpdateStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateStudentActionPerformed
+        String studentIdStr = lblStudentIDVal.getText().trim();
+        if (studentIdStr.isEmpty() || studentIdStr.equalsIgnoreCase("STU-Auto")) {
+            int selectedRow = tableStudents.getSelectedRow();
+            if (selectedRow >= 0) {
+                studentIdStr = String.valueOf(tableStudents.getValueAt(selectedRow, 0)).trim();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a student from the table to update!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        int studentId;
+        try {
+            String cleanId = studentIdStr.replaceAll("[^0-9]", "");
+            if (cleanId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Invalid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            studentId = Integer.parseInt(cleanId);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String name = txtStudentName.getText().trim();
+        String nic = txtStudentNIC.getText().trim();
+        String phone = txtStudentPhone.getText().trim();
+        String address = txtStudentAddress.getText().trim();
+        String vClass = (String) cmbStudentClass.getSelectedItem();
+        String status = (String) cmbStudentStatus.getSelectedItem();
+
+        // 1. Validate Full Name
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Full Name!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentName.requestFocus();
+            return;
+        }
+        if (name.length() < 3 || name.length() > 100) {
+            JOptionPane.showMessageDialog(this, "Full Name must be between 3 and 100 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentName.requestFocus();
+            return;
+        }
+        if (!name.matches("^[a-zA-Z\\s.\\-']+$")) {
+            JOptionPane.showMessageDialog(this, "Full Name can only contain letters, spaces, dots, and hyphens!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentName.requestFocus();
+            return;
+        }
+
+        // 2. Validate NIC Number
+        if (nic.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter NIC Number!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentNIC.requestFocus();
+            return;
+        }
+        if (!nic.matches("^([0-9]{9}[vVxX]|[0-9]{12})$")) {
+            JOptionPane.showMessageDialog(this, "Invalid NIC format!\nNIC must be either:\n- 9 digits followed by V or X (e.g., 123456789V)\n- 12 digits (e.g., 200012345678)", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentNIC.requestFocus();
+            return;
+        }
+
+        // 3. Validate Phone Number
+        if (phone.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Phone Number!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentPhone.requestFocus();
+            return;
+        }
+        if (!phone.matches("^(?:0|\\+94)?[0-9]{9,10}$")) {
+            JOptionPane.showMessageDialog(this, "Invalid Phone Number!\nPlease enter a valid phone number (e.g., 0771234567).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentPhone.requestFocus();
+            return;
+        }
+
+        // 4. Validate Address
+        if (address.length() > 200) {
+            JOptionPane.showMessageDialog(this, "Address cannot exceed 200 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtStudentAddress.requestFocus();
+            return;
+        }
+
+        // Fallbacks for combo selections
+        if (vClass == null || vClass.trim().isEmpty()) {
+            vClass = "Class B (Dual Purpose / Car)";
+        }
+        if (status == null || status.trim().isEmpty()) {
+            status = "Active Learner";
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Check if NIC is already registered to another student
+        String checkNicSql = "SELECT student_id FROM students WHERE nic = ? AND student_id != ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkNicSql)) {
+            checkPst.setString(1, nic);
+            checkPst.setInt(2, studentId);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "A student with NIC '" + nic + "' is already registered!", "Duplicate NIC", JOptionPane.WARNING_MESSAGE);
+                    txtStudentNIC.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 6. Update student
+        String updateSql = "UPDATE students SET full_name = ?, nic = ?, phone = ?, address = ?, vehicle_class = ?, status = ? WHERE student_id = ?";
+        try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+            pst.setString(1, name);
+            pst.setString(2, nic);
+            pst.setString(3, phone);
+            pst.setString(4, address);
+            pst.setString(5, vClass);
+            pst.setString(6, status);
+            pst.setInt(7, studentId);
+
+            int affected = pst.executeUpdate();
+            if (affected > 0) {
+                JOptionPane.showMessageDialog(this, "Student updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadStudents();
+                clearStudentForm();
+            } else {
+                JOptionPane.showMessageDialog(this, "No student record was updated. Please verify that the student exists.", "Update Failed", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to update student: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnUpdateStudentActionPerformed
+
+    private void btnDeleteStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteStudentActionPerformed
+        String studentIdStr = lblStudentIDVal.getText().trim();
+        if (studentIdStr.isEmpty() || studentIdStr.equalsIgnoreCase("STU-Auto")) {
+            int selectedRow = tableStudents.getSelectedRow();
+            if (selectedRow >= 0) {
+                studentIdStr = String.valueOf(tableStudents.getValueAt(selectedRow, 0)).trim();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a student from the table to delete!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        int studentId;
+        try {
+            String cleanId = studentIdStr.replaceAll("[^0-9]", "");
+            if (cleanId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Invalid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            studentId = Integer.parseInt(cleanId);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid Student ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String name = txtStudentName.getText().trim();
+        String displayName = name.isEmpty() ? studentIdStr : name;
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to delete student '" + displayName + "' (ID: " + studentIdStr + ")?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Connection conn = getConnection();
+            if (conn == null) {
+                JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String deleteSql = "DELETE FROM students WHERE student_id = ?";
+            try (PreparedStatement pst = conn.prepareStatement(deleteSql)) {
+                pst.setInt(1, studentId);
+                int affected = pst.executeUpdate();
+                if (affected > 0) {
+                    JOptionPane.showMessageDialog(this, "Student deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    loadStudents();
+                    clearStudentForm();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No student record was deleted. The record may have already been removed.", "Delete Failed", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Failed to delete student: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btnDeleteStudentActionPerformed
+
+    private void btnInstAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInstAddActionPerformed
+        String name = txtInstFullName.getText().trim();
+        String phone = txtInstPhone.getText().trim();
+        String nic = txtInstNic.getText().trim();
+        String license = txtInstLicense.getText().trim();
+        String vClass = (String) cmbInstCategory.getSelectedItem();
+        String status = (String) cmbInstStatus.getSelectedItem();
+
+        // 1. Validate Full Name
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Instructor Full Name!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstFullName.requestFocus();
+            return;
+        }
+        if (name.length() < 3 || name.length() > 100) {
+            JOptionPane.showMessageDialog(this, "Full Name must be between 3 and 100 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstFullName.requestFocus();
+            return;
+        }
+        if (!name.matches("^[a-zA-Z\\s.\\-']+$")) {
+            JOptionPane.showMessageDialog(this, "Full Name can only contain letters, spaces, dots, and hyphens!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstFullName.requestFocus();
+            return;
+        }
+
+        // 2. Validate Phone Number
+        if (phone.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Phone Number!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstPhone.requestFocus();
+            return;
+        }
+        if (!phone.matches("^(?:0|\\+94)?[0-9]{9,10}$")) {
+            JOptionPane.showMessageDialog(this, "Invalid Phone Number!\nPlease enter a valid phone number (e.g., 0771234567).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstPhone.requestFocus();
+            return;
+        }
+
+        // 3. Validate NIC (if provided)
+        if (!nic.isEmpty()) {
+            if (!nic.matches("^([0-9]{9}[vVxX]|[0-9]{12})$")) {
+                JOptionPane.showMessageDialog(this, "Invalid NIC format!\nNIC must be either:\n- 9 digits followed by V or X (e.g., 123456789V)\n- 12 digits (e.g., 198812345678)", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                txtInstNic.requestFocus();
+                return;
+            }
+        }
+
+        // 4. Validate License / Badge No
+        if (license.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Driving License / Badge No!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstLicense.requestFocus();
+            return;
+        }
+        if (license.length() < 3 || license.length() > 50) {
+            JOptionPane.showMessageDialog(this, "License / Badge No must be between 3 and 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstLicense.requestFocus();
+            return;
+        }
+
+        // Fallbacks for combo selections
+        if (vClass == null || vClass.trim().isEmpty()) {
+            vClass = "Class B (Dual Purpose / Car)";
+        }
+        if (status == null || status.trim().isEmpty()) {
+            status = "Available";
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Check if NIC is already registered to another instructor
+        if (!nic.isEmpty()) {
+            String checkNicSql = "SELECT instructor_id FROM instructors WHERE nic = ?";
+            try (PreparedStatement checkPst = conn.prepareStatement(checkNicSql)) {
+                checkPst.setString(1, nic);
+                try (ResultSet rs = checkPst.executeQuery()) {
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(this, "An instructor with NIC '" + nic + "' is already registered!", "Duplicate NIC", JOptionPane.WARNING_MESSAGE);
+                        txtInstNic.requestFocus();
+                        return;
+                    }
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        // 6. Check if License / Badge No is already registered
+        String checkLicSql = "SELECT instructor_id FROM instructors WHERE license_no = ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkLicSql)) {
+            checkPst.setString(1, license);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "An instructor with License / Badge No '" + license + "' is already registered!", "Duplicate License", JOptionPane.WARNING_MESSAGE);
+                    txtInstLicense.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 7. Insert instructor
+        String insertSql = "INSERT INTO instructors (full_name, phone, nic, license_no, vehicle_class, status) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pst = conn.prepareStatement(insertSql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            pst.setString(1, name);
+            pst.setString(2, phone);
+            pst.setString(3, nic.isEmpty() ? null : nic);
+            pst.setString(4, license);
+            pst.setString(5, vClass);
+            pst.setString(6, status);
+
+            int affected = pst.executeUpdate();
+            if (affected > 0) {
+                String genIdStr = "";
+                try (ResultSet genKeys = pst.getGeneratedKeys()) {
+                    if (genKeys.next()) {
+                        int genId = genKeys.getInt(1);
+                        genIdStr = String.format(" (INS-%03d)", genId);
+                    }
+                }
+                JOptionPane.showMessageDialog(this, "Instructor added successfully!" + genIdStr, "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadInstructors();
+                clearInstructorForm();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to add instructor: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnInstAddActionPerformed
+
+    private void btnInstUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInstUpdateActionPerformed
+        String instIdStr = txtInstId.getText().trim();
+        if (instIdStr.isEmpty() || instIdStr.equalsIgnoreCase("INS-Auto")) {
+            int selectedRow = tableInstructors.getSelectedRow();
+            if (selectedRow >= 0) {
+                instIdStr = String.valueOf(tableInstructors.getValueAt(selectedRow, 0)).trim();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select an instructor from the table to update!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        int instructorId;
+        try {
+            String cleanId = instIdStr.replaceAll("[^0-9]", "");
+            if (cleanId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Invalid Instructor ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            instructorId = Integer.parseInt(cleanId);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid Instructor ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String name = txtInstFullName.getText().trim();
+        String phone = txtInstPhone.getText().trim();
+        String nic = txtInstNic.getText().trim();
+        String license = txtInstLicense.getText().trim();
+        String vClass = (String) cmbInstCategory.getSelectedItem();
+        String status = (String) cmbInstStatus.getSelectedItem();
+
+        // 1. Validate Full Name
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Instructor Full Name!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstFullName.requestFocus();
+            return;
+        }
+        if (name.length() < 3 || name.length() > 100) {
+            JOptionPane.showMessageDialog(this, "Full Name must be between 3 and 100 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstFullName.requestFocus();
+            return;
+        }
+        if (!name.matches("^[a-zA-Z\\s.\\-']+$")) {
+            JOptionPane.showMessageDialog(this, "Full Name can only contain letters, spaces, dots, and hyphens!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstFullName.requestFocus();
+            return;
+        }
+
+        // 2. Validate Phone Number
+        if (phone.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Phone Number!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstPhone.requestFocus();
+            return;
+        }
+        if (!phone.matches("^(?:0|\\+94)?[0-9]{9,10}$")) {
+            JOptionPane.showMessageDialog(this, "Invalid Phone Number!\nPlease enter a valid phone number (e.g., 0771234567).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstPhone.requestFocus();
+            return;
+        }
+
+        // 3. Validate NIC (if provided)
+        if (!nic.isEmpty()) {
+            if (!nic.matches("^([0-9]{9}[vVxX]|[0-9]{12})$")) {
+                JOptionPane.showMessageDialog(this, "Invalid NIC format!\nNIC must be either:\n- 9 digits followed by V or X (e.g., 123456789V)\n- 12 digits (e.g., 198812345678)", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                txtInstNic.requestFocus();
+                return;
+            }
+        }
+
+        // 4. Validate License / Badge No
+        if (license.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Driving License / Badge No!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstLicense.requestFocus();
+            return;
+        }
+        if (license.length() < 3 || license.length() > 50) {
+            JOptionPane.showMessageDialog(this, "License / Badge No must be between 3 and 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtInstLicense.requestFocus();
+            return;
+        }
+
+        // Fallbacks for combo selections
+        if (vClass == null || vClass.trim().isEmpty()) {
+            vClass = "Class B (Dual Purpose / Car)";
+        }
+        if (status == null || status.trim().isEmpty()) {
+            status = "Available";
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Check if NIC is already registered to another instructor
+        if (!nic.isEmpty()) {
+            String checkNicSql = "SELECT instructor_id FROM instructors WHERE nic = ? AND instructor_id != ?";
+            try (PreparedStatement checkPst = conn.prepareStatement(checkNicSql)) {
+                checkPst.setString(1, nic);
+                checkPst.setInt(2, instructorId);
+                try (ResultSet rs = checkPst.executeQuery()) {
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(this, "An instructor with NIC '" + nic + "' is already registered!", "Duplicate NIC", JOptionPane.WARNING_MESSAGE);
+                        txtInstNic.requestFocus();
+                        return;
+                    }
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        // 6. Check if License / Badge No is already registered to another instructor
+        String checkLicSql = "SELECT instructor_id FROM instructors WHERE license_no = ? AND instructor_id != ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkLicSql)) {
+            checkPst.setString(1, license);
+            checkPst.setInt(2, instructorId);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "An instructor with License / Badge No '" + license + "' is already registered!", "Duplicate License", JOptionPane.WARNING_MESSAGE);
+                    txtInstLicense.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 7. Update instructor
+        String updateSql = "UPDATE instructors SET full_name = ?, phone = ?, nic = ?, license_no = ?, vehicle_class = ?, status = ? WHERE instructor_id = ?";
+        try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+            pst.setString(1, name);
+            pst.setString(2, phone);
+            pst.setString(3, nic.isEmpty() ? null : nic);
+            pst.setString(4, license);
+            pst.setString(5, vClass);
+            pst.setString(6, status);
+            pst.setInt(7, instructorId);
+
+            int affected = pst.executeUpdate();
+            if (affected > 0) {
+                JOptionPane.showMessageDialog(this, "Instructor updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadInstructors();
+                clearInstructorForm();
+            } else {
+                JOptionPane.showMessageDialog(this, "No instructor record was updated. Please verify that the instructor exists.", "Update Failed", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to update instructor: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnInstUpdateActionPerformed
+
+    private void btnInstDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInstDeleteActionPerformed
+        String instIdStr = txtInstId.getText().trim();
+        if (instIdStr.isEmpty() || instIdStr.equalsIgnoreCase("INS-Auto")) {
+            int selectedRow = tableInstructors.getSelectedRow();
+            if (selectedRow >= 0) {
+                instIdStr = String.valueOf(tableInstructors.getValueAt(selectedRow, 0)).trim();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select an instructor from the table to delete!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        int instructorId;
+        try {
+            String cleanId = instIdStr.replaceAll("[^0-9]", "");
+            if (cleanId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Invalid Instructor ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            instructorId = Integer.parseInt(cleanId);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid Instructor ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String name = txtInstFullName.getText().trim();
+        String displayName = name.isEmpty() ? instIdStr : name;
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to delete instructor '" + displayName + "' (ID: " + instIdStr + ")?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Connection conn = getConnection();
+            if (conn == null) {
+                JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String deleteSql = "DELETE FROM instructors WHERE instructor_id = ?";
+            try (PreparedStatement pst = conn.prepareStatement(deleteSql)) {
+                pst.setInt(1, instructorId);
+                int affected = pst.executeUpdate();
+                if (affected > 0) {
+                    JOptionPane.showMessageDialog(this, "Instructor deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    loadInstructors();
+                    clearInstructorForm();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No instructor record was deleted. The record may have already been removed.", "Delete Failed", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Failed to delete instructor: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btnInstDeleteActionPerformed
+
+    private void btnInstClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInstClearActionPerformed
+        btnInstAdd.setVisible(true);
+        btnInstUpdate.setVisible(false);
+        btnInstDelete.setVisible(false);
+        btnInstClear.setVisible(false);
+        loadInstructors();
+        clearInstructorForm();
+    }//GEN-LAST:event_btnInstClearActionPerformed
+
+    private void btnVehAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVehAddActionPerformed
+        String model = txtVehModel.getText().trim();
+        String plate = txtVehPlate.getText().trim().toUpperCase();
+        String vClass = (String) cmbVehCategory.getSelectedItem();
+        String transmission = (String) cmbVehTransmission.getSelectedItem();
+        String fuel = (String) cmbVehFuel.getSelectedItem();
+        String status = (String) cmbVehStatus.getSelectedItem();
+        String mileage = txtVehMileage.getText().trim();
+
+        // 1. Validate Vehicle Model / Brand
+        if (model.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Vehicle Model / Brand!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehModel.requestFocus();
+            return;
+        }
+        if (model.length() < 2 || model.length() > 100) {
+            JOptionPane.showMessageDialog(this, "Vehicle Model / Brand must be between 2 and 100 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehModel.requestFocus();
+            return;
+        }
+
+        // 2. Validate Registration / Plate No
+        if (plate.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Registration / Plate No!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehPlate.requestFocus();
+            return;
+        }
+        if (plate.length() < 3 || plate.length() > 20) {
+            JOptionPane.showMessageDialog(this, "Plate No must be between 3 and 20 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehPlate.requestFocus();
+            return;
+        }
+        if (!plate.matches("^[a-zA-Z0-9\\s\\-]+$")) {
+            JOptionPane.showMessageDialog(this, "Plate No can only contain letters, numbers, spaces, and hyphens (e.g., CAB-4512 or WP-3321)!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehPlate.requestFocus();
+            return;
+        }
+
+        // 3. Validate Mileage length
+        if (mileage.length() > 50) {
+            JOptionPane.showMessageDialog(this, "Mileage / Service info cannot exceed 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehMileage.requestFocus();
+            return;
+        }
+
+        // Fallbacks for combo selections
+        if (vClass == null || vClass.trim().isEmpty()) {
+            vClass = "Class B (Dual Purpose / Car)";
+        }
+        if (transmission == null || transmission.trim().isEmpty()) {
+            transmission = "Auto";
+        }
+        if (fuel == null || fuel.trim().isEmpty()) {
+            fuel = "Petrol";
+        }
+        if (status == null || status.trim().isEmpty()) {
+            status = "Available";
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 4. Check if Plate No already exists
+        String checkSql = "SELECT vehicle_id FROM vehicles WHERE vehicle_number = ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkSql)) {
+            checkPst.setString(1, plate);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "A vehicle with Plate No '" + plate + "' is already registered!", "Duplicate Vehicle", JOptionPane.WARNING_MESSAGE);
+                    txtVehPlate.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Insert vehicle into DB
+        String insertSql = "INSERT INTO vehicles (vehicle_number, vehicle_type, model, vehicle_class, transmission, fuel_type, status, mileage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pst = conn.prepareStatement(insertSql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+            pst.setString(1, plate);
+            pst.setString(2, vClass.length() > 50 ? vClass.substring(0, 50) : vClass);
+            pst.setString(3, model);
+            pst.setString(4, vClass);
+            pst.setString(5, transmission);
+            pst.setString(6, fuel);
+            pst.setString(7, status);
+            pst.setString(8, mileage.isEmpty() ? null : mileage);
+
+            int affected = pst.executeUpdate();
+            if (affected > 0) {
+                String genIdStr = "";
+                try (ResultSet genKeys = pst.getGeneratedKeys()) {
+                    if (genKeys.next()) {
+                        int genId = genKeys.getInt(1);
+                        genIdStr = String.format(" (VEH-%03d)", genId);
+                    }
+                }
+                JOptionPane.showMessageDialog(this, "Vehicle added successfully!" + genIdStr, "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadVehicles();
+                clearVehicleForm();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to add vehicle: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnVehAddActionPerformed
+
+    private void btnVehUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVehUpdateActionPerformed
+        String vehIdStr = txtVehId.getText().trim();
+        if (vehIdStr.isEmpty() || vehIdStr.equalsIgnoreCase("VEH-Auto")) {
+            int selectedRow = tableVehicles.getSelectedRow();
+            if (selectedRow >= 0) {
+                vehIdStr = String.valueOf(tableVehicles.getValueAt(selectedRow, 0)).trim();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a vehicle from the table to update!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        int vehicleId;
+        try {
+            String cleanId = vehIdStr.replaceAll("[^0-9]", "");
+            if (cleanId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Invalid Vehicle ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            vehicleId = Integer.parseInt(cleanId);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid Vehicle ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String model = txtVehModel.getText().trim();
+        String plate = txtVehPlate.getText().trim().toUpperCase();
+        String vClass = (String) cmbVehCategory.getSelectedItem();
+        String transmission = (String) cmbVehTransmission.getSelectedItem();
+        String fuel = (String) cmbVehFuel.getSelectedItem();
+        String status = (String) cmbVehStatus.getSelectedItem();
+        String mileage = txtVehMileage.getText().trim();
+
+        // 1. Validate Vehicle Model / Brand
+        if (model.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Vehicle Model / Brand!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehModel.requestFocus();
+            return;
+        }
+        if (model.length() < 2 || model.length() > 100) {
+            JOptionPane.showMessageDialog(this, "Vehicle Model / Brand must be between 2 and 100 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehModel.requestFocus();
+            return;
+        }
+
+        // 2. Validate Registration / Plate No
+        if (plate.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter Registration / Plate No!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehPlate.requestFocus();
+            return;
+        }
+        if (plate.length() < 3 || plate.length() > 20) {
+            JOptionPane.showMessageDialog(this, "Plate No must be between 3 and 20 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehPlate.requestFocus();
+            return;
+        }
+        if (!plate.matches("^[a-zA-Z0-9\\s\\-]+$")) {
+            JOptionPane.showMessageDialog(this, "Plate No can only contain letters, numbers, spaces, and hyphens (e.g., CAB-4512 or WP-3321)!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehPlate.requestFocus();
+            return;
+        }
+
+        // 3. Validate Mileage length
+        if (mileage.length() > 50) {
+            JOptionPane.showMessageDialog(this, "Mileage / Service info cannot exceed 50 characters!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtVehMileage.requestFocus();
+            return;
+        }
+
+        // Fallbacks for combo selections
+        if (vClass == null || vClass.trim().isEmpty()) {
+            vClass = "Class B (Dual Purpose / Car)";
+        }
+        if (transmission == null || transmission.trim().isEmpty()) {
+            transmission = "Auto";
+        }
+        if (fuel == null || fuel.trim().isEmpty()) {
+            fuel = "Petrol";
+        }
+        if (status == null || status.trim().isEmpty()) {
+            status = "Available";
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 4. Check if Plate No is already registered to another vehicle
+        String checkSql = "SELECT vehicle_id FROM vehicles WHERE vehicle_number = ? AND vehicle_id != ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkSql)) {
+            checkPst.setString(1, plate);
+            checkPst.setInt(2, vehicleId);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (rs.next()) {
+                    JOptionPane.showMessageDialog(this, "A vehicle with Plate No '" + plate + "' is already registered!", "Duplicate Vehicle", JOptionPane.WARNING_MESSAGE);
+                    txtVehPlate.requestFocus();
+                    return;
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // 5. Update vehicle in DB
+        String updateSql = "UPDATE vehicles SET vehicle_number = ?, vehicle_type = ?, model = ?, vehicle_class = ?, transmission = ?, fuel_type = ?, status = ?, mileage = ? WHERE vehicle_id = ?";
+        try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+            pst.setString(1, plate);
+            pst.setString(2, vClass.length() > 50 ? vClass.substring(0, 50) : vClass);
+            pst.setString(3, model);
+            pst.setString(4, vClass);
+            pst.setString(5, transmission);
+            pst.setString(6, fuel);
+            pst.setString(7, status);
+            pst.setString(8, mileage.isEmpty() ? null : mileage);
+            pst.setInt(9, vehicleId);
+
+            int affected = pst.executeUpdate();
+            if (affected > 0) {
+                JOptionPane.showMessageDialog(this, "Vehicle updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                loadVehicles();
+                clearVehicleForm();
+            } else {
+                JOptionPane.showMessageDialog(this, "No vehicle record was updated. Please verify that the vehicle exists.", "Update Failed", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Failed to update vehicle: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnVehUpdateActionPerformed
+
+    private void btnVehDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVehDeleteActionPerformed
+        String vehIdStr = txtVehId.getText().trim();
+        if (vehIdStr.isEmpty() || vehIdStr.equalsIgnoreCase("VEH-Auto")) {
+            int selectedRow = tableVehicles.getSelectedRow();
+            if (selectedRow >= 0) {
+                vehIdStr = String.valueOf(tableVehicles.getValueAt(selectedRow, 0)).trim();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please select a vehicle from the table to delete!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        int vehicleId;
+        try {
+            String cleanId = vehIdStr.replaceAll("[^0-9]", "");
+            if (cleanId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Invalid Vehicle ID!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            vehicleId = Integer.parseInt(cleanId);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid Vehicle ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String model = txtVehModel.getText().trim();
+        String plate = txtVehPlate.getText().trim();
+        String displayName = model.isEmpty() ? vehIdStr : (model + (!plate.isEmpty() ? " (" + plate + ")" : ""));
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to delete vehicle '" + displayName + "' (ID: " + vehIdStr + ")?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            Connection conn = getConnection();
+            if (conn == null) {
+                JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Check if vehicle is linked to any bookings
+            String checkBookingSql = "SELECT COUNT(*) FROM bookings WHERE vehicle_id = ?";
+            try (PreparedStatement checkPst = conn.prepareStatement(checkBookingSql)) {
+                checkPst.setInt(1, vehicleId);
+                try (ResultSet rs = checkPst.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, "Cannot delete vehicle '" + displayName + "' because it is linked to " + rs.getInt(1) + " booking record(s)!\nPlease cancel or reassign those bookings first.", "Cannot Delete Vehicle", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Failed to check vehicle bookings constraint", ex);
+            }
+
+            String deleteSql = "DELETE FROM vehicles WHERE vehicle_id = ?";
+            try (PreparedStatement pst = conn.prepareStatement(deleteSql)) {
+                pst.setInt(1, vehicleId);
+                int affected = pst.executeUpdate();
+                if (affected > 0) {
+                    JOptionPane.showMessageDialog(this, "Vehicle deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    loadVehicles();
+                    clearVehicleForm();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No vehicle record was deleted. The record may have already been removed.", "Delete Failed", JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Failed to delete vehicle: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btnVehDeleteActionPerformed
+
+    private void btnVehClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVehClearActionPerformed
+        btnVehAdd.setVisible(true);
+        btnVehUpdate.setVisible(false);
+        btnVehDelete.setVisible(false);
+        btnVehClear.setVisible(false);
+        loadVehicles();
+        clearVehicleForm();
+    }//GEN-LAST:event_btnVehClearActionPerformed
+
+    private void btnBkAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkAddActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBkAddActionPerformed
 
     /**
      * @param args the command line arguments
@@ -3973,11 +5403,18 @@ public class Dashbord extends javax.swing.JFrame {
     private void btnhide() {
         btnUpdateUser.setVisible(false);
         btnDeleteUser.setVisible(false);
-        btnUpdateUser.setVisible(false);
         btnClearUser.setVisible(false);
-        btnInstructors.setVisible(false);
-        btnVehicle.setVisible(false);
-        btnUserManagement.setVisible(false);
-
+        btnUpdateStudent.setVisible(false);
+        btnDeleteStudent.setVisible(false);
+        btnClearStudent.setVisible(false);
+        btnAddStudent.setVisible(true);
+        btnInstUpdate.setVisible(false);
+        btnInstDelete.setVisible(false);
+        btnInstClear.setVisible(false);
+        btnInstAdd.setVisible(true);
+        btnVehUpdate.setVisible(false);
+        btnVehDelete.setVisible(false);
+        btnVehClear.setVisible(false);
+        btnVehAdd.setVisible(true);
     }
 }

@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS `instructors` (
   `instructor_id` int NOT NULL AUTO_INCREMENT,
   `full_name` varchar(100) NOT NULL,
   `phone` varchar(15) NOT NULL,
+  `nic` varchar(12) DEFAULT NULL,
+  `license_no` varchar(50) DEFAULT NULL,
+  `vehicle_class` varchar(50) DEFAULT 'Class B (Dual Purpose / Car)',
   `status` varchar(20) DEFAULT 'Available',
   PRIMARY KEY (`instructor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -93,8 +96,13 @@ INSERT INTO `users` (`user_id`, `username`, `nic`, `password`, `role`, `first_ti
 CREATE TABLE IF NOT EXISTS `vehicles` (
   `vehicle_id` int NOT NULL AUTO_INCREMENT,
   `vehicle_number` varchar(20) NOT NULL,
-  `vehicle_type` varchar(30) NOT NULL,
+  `vehicle_type` varchar(50) DEFAULT 'Car',
+  `model` varchar(100) DEFAULT NULL,
+  `vehicle_class` varchar(50) DEFAULT 'Class B (Dual Purpose / Car)',
+  `transmission` varchar(20) DEFAULT 'Manual',
+  `fuel_type` varchar(20) DEFAULT 'Petrol',
   `status` varchar(20) DEFAULT 'Available',
+  `mileage` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`vehicle_id`),
   UNIQUE KEY `vehicle_number` (`vehicle_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
