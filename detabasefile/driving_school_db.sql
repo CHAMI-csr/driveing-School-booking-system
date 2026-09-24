@@ -33,12 +33,14 @@ CREATE TABLE IF NOT EXISTS `bookings` (
   KEY `student_id` (`student_id`),
   KEY `instructor_id` (`instructor_id`),
   KEY `vehicle_id` (`vehicle_id`),
-  CONSTRAINT `bookings_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`),
   CONSTRAINT `bookings_ibfk_2` FOREIGN KEY (`instructor_id`) REFERENCES `instructors` (`instructor_id`),
-  CONSTRAINT `bookings_ibfk_3` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`vehicle_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `bookings_ibfk_3` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`vehicle_id`),
+  CONSTRAINT `FK_bookings_students` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table driving_school_db.bookings: ~0 rows (approximately)
+INSERT INTO `bookings` (`booking_id`, `student_id`, `instructor_id`, `vehicle_id`, `booking_date`, `start_time`, `end_time`, `status`) VALUES
+	(1, 1, 1, 1, '2026-09-24', '11:00:00', '12:00:00', 'Confirmed');
 
 -- Dumping structure for table driving_school_db.instructors
 CREATE TABLE IF NOT EXISTS `instructors` (
@@ -50,9 +52,11 @@ CREATE TABLE IF NOT EXISTS `instructors` (
   `vehicle_class` varchar(50) DEFAULT 'Class B (Dual Purpose / Car)',
   `status` varchar(20) DEFAULT 'Available',
   PRIMARY KEY (`instructor_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table driving_school_db.instructors: ~0 rows (approximately)
+INSERT INTO `instructors` (`instructor_id`, `full_name`, `phone`, `nic`, `license_no`, `vehicle_class`, `status`) VALUES
+	(1, 'ranasinhal', '0761042162', '200625104468', 'V31231', 'Class A & B (Combo)', 'Available');
 
 -- Dumping structure for table driving_school_db.settings
 CREATE TABLE IF NOT EXISTS `settings` (
@@ -71,9 +75,13 @@ CREATE TABLE IF NOT EXISTS `students` (
   `vehicle_class` varchar(50) DEFAULT 'Class B (Dual Purpose / Car)',
   `status` varchar(30) DEFAULT 'Active Learner',
   PRIMARY KEY (`student_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table driving_school_db.students: ~0 rows (approximately)
+INSERT INTO `students` (`student_id`, `full_name`, `nic`, `phone`, `address`, `vehicle_class`, `status`) VALUES
+	(1, 'chamika', '200625103468', '0761042162', 'baddgama', 'Class A & B (Combo)', 'Active Learner'),
+	(2, 'chamika', '200625103465', '0761042162', 'galle', 'Class B (Dual Purpose / Car)', 'Active Learner'),
+	(3, 'afawww', '200625103469', '0716139367', 'faaf', 'Class B (Dual Purpose / Car)', 'Active Learner');
 
 -- Dumping structure for table driving_school_db.users
 CREATE TABLE IF NOT EXISTS `users` (
@@ -87,10 +95,10 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table driving_school_db.users: ~1 rows (approximately)
+-- Dumping data for table driving_school_db.users: ~2 rows (approximately)
 INSERT INTO `users` (`user_id`, `username`, `nic`, `password`, `role`, `first_time`) VALUES
-	(1, 'chamika', NULL, 'y9jNN1bntRvSHaVC886zoR146fe+lju83CLK2zk6uhw=', 'admin', NULL),
-	(2, 'chamika1', '200625103468', 'A6xnQhbz4Vx2HuGl4lXwZ5U2I8iziLRFnhP5eNfIRvQ=', 'Staff', NULL);
+	(1, 'chamika', '200625103469', 'y9jNN1bntRvSHaVC886zoR146fe+lju83CLK2zk6uhw=', 'Admin', 0),
+	(2, 'chamika1', '200625103468', '73l8gRjwLftklgfdXT+MdiMEjJwGPVMsyVxe16iYpk8=', 'Staff', 0);
 
 -- Dumping structure for table driving_school_db.vehicles
 CREATE TABLE IF NOT EXISTS `vehicles` (
@@ -105,9 +113,11 @@ CREATE TABLE IF NOT EXISTS `vehicles` (
   `mileage` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`vehicle_id`),
   UNIQUE KEY `vehicle_number` (`vehicle_number`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Dumping data for table driving_school_db.vehicles: ~0 rows (approximately)
+INSERT INTO `vehicles` (`vehicle_id`, `vehicle_number`, `vehicle_type`, `model`, `vehicle_class`, `transmission`, `fuel_type`, `status`, `mileage`) VALUES
+	(1, 'BDA-6849', 'Class A (Motorcycle)', 'BDAQW', 'Class A (Motorcycle)', 'Auto', 'Petrol', 'Available', '500000');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

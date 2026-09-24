@@ -4,18 +4,17 @@
  */
 package driveingschool;
 
-import java.sql.Connection;
-import javax.swing.JOptionPane;
-import java.sql.SQLException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -23,7 +22,7 @@ import java.util.logging.Logger;
  */
 public class loging extends javax.swing.JFrame {
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(loging.class.getName());
+    private static final Logger logger = Logger.getLogger(loging.class.getName());
 
     /**
      * Creates new form loging
@@ -151,7 +150,7 @@ public class loging extends javax.swing.JFrame {
                 }
             }
         } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -206,7 +205,6 @@ public class loging extends javax.swing.JFrame {
             return;
         }
         String encryptedPassword = hashPassword(enteredPassword);
-        System.out.println(encryptedPassword);
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
 
         try (PreparedStatement pst = con.prepareStatement(sql)) {
@@ -218,11 +216,18 @@ public class loging extends javax.swing.JFrame {
             if (rs.next()) {
                 String username = rs.getString("username");
                 String role = rs.getString("role");
+                int userId = rs.getInt("user_id");
+                int firstTimeVal = rs.getInt("first_time");
+                boolean isFirstTime = !rs.wasNull() && firstTimeVal == 1;
+
                 JOptionPane.showMessageDialog(this, "Login Successful! Welcome " + enteredUsername);
 
-                // Dashboard Window Open
-                
-                new Dashbord(username, role).setVisible(true);
+                // Check first_time flag — redirect to password change screen if needed
+                if (isFirstTime) {
+                    new firsttimelogin(username, role, userId).setVisible(true);
+                } else {
+                    new Dashbord(username, role).setVisible(true);
+                }
                 this.dispose();
                 // new MainDashboard().setVisible(true);
                 

@@ -6,17 +6,30 @@ package driveingschool;
 
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.table.DefaultTableModel;
@@ -27,7 +40,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class Dashbord extends javax.swing.JFrame {
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Dashbord.class.getName());
+    private static final Logger logger = Logger.getLogger(Dashbord.class.getName());
     private String currentUsername;
     private String currentRole;
     private Connection con;
@@ -72,6 +85,16 @@ public class Dashbord extends javax.swing.JFrame {
         // Initialize and load Vehicles from DB
         initVehicleComponents();
         loadVehicles();
+
+        // Initialize and load Bookings from DB
+        initBookingComponents();
+        LoadBookingTable();
+
+        // Initialize and load Bookings Management from DB
+        initBookingManagementComponents();
+
+        // Load live dashboard summary cards & recent bookings from DB
+        loadDashboardData();
     }
 
     private void switchCard(String cardName) {
@@ -157,12 +180,12 @@ public class Dashbord extends javax.swing.JFrame {
     private void initStudentComponents() {
 
         // Attach action listener for search button and Enter key on search field
-        for (java.awt.event.ActionListener al : btnSearchStudent.getActionListeners()) {
+        for (ActionListener al : btnSearchStudent.getActionListeners()) {
             btnSearchStudent.removeActionListener(al);
         }
         btnSearchStudent.addActionListener(e -> searchStudents());
 
-        for (java.awt.event.ActionListener al : txtSearchStudent.getActionListeners()) {
+        for (ActionListener al : txtSearchStudent.getActionListeners()) {
             txtSearchStudent.removeActionListener(al);
         }
         txtSearchStudent.addActionListener(e -> searchStudents());
@@ -231,8 +254,190 @@ public class Dashbord extends javax.swing.JFrame {
         loadStudents(query);
     }
 
+    // =========================================================================
+    // AUTO-INCREMENT & UNIQUE ID GENERATION METHODS (Student, Instructor, Vehicle)
+    // =========================================================================
+
+    /**
+     * Checks whether a student_id already exists in the 'students' database table.
+     */
+    public boolean isStudentIdExists(int id) {
+        Connection conn = getConnection();
+        if (conn == null) return false;
+        String sql = "SELECT student_id FROM students WHERE student_id = ? LIMIT 1";
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, id);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Error checking student_id existence", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Generates a unique Student ID:
+     */
+    public int generateUniqueStudentId() {
+        int id = 1;
+        Connection conn = getConnection();
+        if (conn != null) {
+            String sql = "SELECT MAX(student_id) FROM students";
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(sql)) {
+                if (rs.next()) {
+                    int max = rs.getInt(1);
+                    id = (max > 0) ? max + 1 : 1;
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Error finding max student_id", ex);
+            }
+        }
+
+        // Check if ID exists; if already present, randomize until a unique unused ID is found
+        Random rand = new Random();
+        while (isStudentIdExists(id)) {
+            id = rand.nextInt(9000) + 1000; // Random 4-digit ID: 1000 to 9999
+        }
+        return id;
+    }
+
+    /**
+     * Checks whether an instructor_id already exists in the 'instructors' database table.
+     */
+    public boolean isInstructorIdExists(int id) {
+        Connection conn = getConnection();
+        if (conn == null) return false;
+        String sql = "SELECT instructor_id FROM instructors WHERE instructor_id = ? LIMIT 1";
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, id);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Error checking instructor_id existence", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Generates a unique Instructor ID:
+     */
+    public int generateUniqueInstructorId() {
+        int id = 1;
+        Connection conn = getConnection();
+        if (conn != null) {
+            String sql = "SELECT MAX(instructor_id) FROM instructors";
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(sql)) {
+                if (rs.next()) {
+                    int max = rs.getInt(1);
+                    id = (max > 0) ? max + 1 : 1;
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Error finding max instructor_id", ex);
+            }
+        }
+
+        Random rand = new Random();
+        while (isInstructorIdExists(id)) {
+            id = rand.nextInt(900) + 100; // Random 3-digit ID: 100 to 999
+        }
+        return id;
+    }
+
+    /**
+     * Checks whether a vehicle_id already exists in the 'vehicles' database table.
+     */
+    public boolean isVehicleIdExists(int id) {
+        Connection conn = getConnection();
+        if (conn == null) return false;
+        String sql = "SELECT vehicle_id FROM vehicles WHERE vehicle_id = ? LIMIT 1";
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, id);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Error checking vehicle_id existence", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Generates a unique Vehicle ID:
+     */
+    public int generateUniqueVehicleId() {
+        int id = 1;
+        Connection conn = getConnection();
+        if (conn != null) {
+            String sql = "SELECT MAX(vehicle_id) FROM vehicles";
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(sql)) {
+                if (rs.next()) {
+                    int max = rs.getInt(1);
+                    id = (max > 0) ? max + 1 : 1;
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Error finding max vehicle_id", ex);
+            }
+        }
+
+        Random rand = new Random();
+        while (isVehicleIdExists(id)) {
+            id = rand.nextInt(900) + 100; // Random 3-digit ID: 100 to 999
+        }
+        return id;
+    }
+
+    /**
+     * Checks whether a booking_id already exists in the 'bookings' database table.
+     */
+    public boolean isBookingIdExists(int id) {
+        Connection conn = getConnection();
+        if (conn == null) return false;
+        String sql = "SELECT booking_id FROM bookings WHERE booking_id = ? LIMIT 1";
+        try (PreparedStatement pst = conn.prepareStatement(sql)) {
+            pst.setInt(1, id);
+            try (ResultSet rs = pst.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Error checking booking_id existence", ex);
+            return false;
+        }
+    }
+
+    /**
+     * Generates a unique Booking ID based on the database AUTO_INCREMENT / MAX(booking_id).
+     */
+    public int generateUniqueBookingId() {
+        int id = 1;
+        Connection conn = getConnection();
+        if (conn != null) {
+            String sql = "SELECT MAX(booking_id) FROM bookings";
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(sql)) {
+                if (rs.next()) {
+                    int max = rs.getInt(1);
+                    id = (max > 0) ? max + 1 : 1;
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Error finding max booking_id", ex);
+            }
+        }
+
+        // If ID exists, increment until a unique unused ID is found
+        while (isBookingIdExists(id)) {
+            id++;
+        }
+        return id;
+    }
+
     private void clearStudentForm() {
-        lblStudentIDVal.setText("STU-Auto");
+        int nextId = generateUniqueStudentId();
+        lblStudentIDVal.setText(String.format("STU-%04d", nextId));
         txtStudentName.setText("");
         txtStudentNIC.setText("");
         txtStudentPhone.setText("");
@@ -251,7 +456,7 @@ public class Dashbord extends javax.swing.JFrame {
     }
 
     private void initInstructorComponents() {
-        for (java.awt.event.ActionListener al : btnInstRefresh.getActionListeners()) {
+        for (ActionListener al : btnInstRefresh.getActionListeners()) {
             btnInstRefresh.removeActionListener(al);
         }
         btnInstRefresh.addActionListener(e -> {
@@ -260,7 +465,7 @@ public class Dashbord extends javax.swing.JFrame {
             loadInstructors(kw, st);
         });
 
-        for (java.awt.event.ActionListener al : btnInstClear.getActionListeners()) {
+        for (ActionListener al : btnInstClear.getActionListeners()) {
             btnInstClear.removeActionListener(al);
         }
         btnInstClear.addActionListener(e -> clearInstructorForm());
@@ -277,9 +482,9 @@ public class Dashbord extends javax.swing.JFrame {
             loadInstructors(kw, st);
         });
 
-        tableInstructors.addMouseListener(new java.awt.event.MouseAdapter() {
+        tableInstructors.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
+            public void mouseClicked(MouseEvent evt) {
                 tableInstructorsMouseClicked(evt);
             }
         });
@@ -363,7 +568,8 @@ public class Dashbord extends javax.swing.JFrame {
     }
 
     private void clearInstructorForm() {
-        txtInstId.setText("INS-Auto");
+        int nextId = generateUniqueInstructorId();
+        txtInstId.setText(String.format("INS-%03d", nextId));
         txtInstFullName.setText("");
         txtInstPhone.setText("");
         txtInstNic.setText("");
@@ -413,7 +619,7 @@ public class Dashbord extends javax.swing.JFrame {
 
     private void initVehicleComponents() {
 
-        for (java.awt.event.ActionListener al : btnVehRefresh.getActionListeners()) {
+        for (ActionListener al : btnVehRefresh.getActionListeners()) {
             btnVehRefresh.removeActionListener(al);
         }
         btnVehRefresh.addActionListener(e -> {
@@ -422,7 +628,7 @@ public class Dashbord extends javax.swing.JFrame {
             loadVehicles(kw, st);
         });
 
-        for (java.awt.event.ActionListener al : btnVehClear.getActionListeners()) {
+        for (ActionListener al : btnVehClear.getActionListeners()) {
             btnVehClear.removeActionListener(al);
         }
         btnVehClear.addActionListener(e -> clearVehicleForm());
@@ -518,7 +724,8 @@ public class Dashbord extends javax.swing.JFrame {
     }
 
     private void clearVehicleForm() {
-        txtVehId.setText("VEH-Auto");
+        int nextId = generateUniqueVehicleId();
+        txtVehId.setText(String.format("VEH-%03d", nextId));
         txtVehModel.setText("");
         txtVehPlate.setText("");
         txtVehMileage.setText("");
@@ -680,6 +887,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnUpdateUser = new javax.swing.JButton();
         btnDeleteUser = new javax.swing.JButton();
         btnClearUser = new javax.swing.JButton();
+        btnResetUser = new javax.swing.JButton();
         jPasswordField1 = new javax.swing.JPasswordField();
         jLabel7 = new javax.swing.JLabel();
         jPasswordField2 = new javax.swing.JPasswordField();
@@ -1341,7 +1549,8 @@ public class Dashbord extends javax.swing.JFrame {
         btnViewAllBookings.setBorder(null);
         btnViewAllBookings.setFocusPainted(false);
         btnViewAllBookings.setPreferredSize(new java.awt.Dimension(150, 32));
-        panelRecentHeader.add(btnViewAllBookings, java.awt.BorderLayout.LINE_END);
+        btnViewAllBookings.addActionListener(this::btnViewAllBookingsActionPerformed);
+        panelRecentHeader.add(btnViewAllBookings);
 
         panelRecentBookings.add(panelRecentHeader, java.awt.BorderLayout.PAGE_START);
 
@@ -1350,12 +1559,7 @@ public class Dashbord extends javax.swing.JFrame {
 
         tableRecentBookings.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"BK-1042", "Kasun Perera", "Kamal Silva", "Toyota Vitz (CAB-1234)", "Today, 09:30 AM", "Practical Driving", "Confirmed"},
-                {"BK-1043", "Nimali Fernando", "Sunil Perera", "Nissan March (WP-5678)", "Today, 11:00 AM", "Pre-Test Practice", "In Progress"},
-                {"BK-1044", "Dinesh Jayasinghe", "Kamal Silva", "Honda Fit (CAR-9012)", "Today, 02:00 PM", "Highway Driving", "Pending"},
-                {"BK-1045", "Sanduni Wickramasinghe", "Mahinda Alwis", "Toyota Vitz (CAB-1234)", "Tomorrow, 08:30 AM", "Parallel Parking", "Confirmed"},
-                {"BK-1046", "Ruwan Tharaka", "Sunil Perera", "Suzuki Alto (KV-3456)", "Tomorrow, 10:30 AM", "Night Driving", "Pending"},
-                {"BK-1047", "Anoma Senanayake", "Mahinda Alwis", "Nissan March (WP-5678)", "Tomorrow, 01:30 PM", "Mock Driving Exam", "Confirmed"}
+
             },
             new String [] {
                 "Booking ID", "Student Name", "Instructor", "Vehicle", "Date & Time", "Lesson Type", "Status"
@@ -1772,6 +1976,15 @@ public class Dashbord extends javax.swing.JFrame {
         btnClearUser.setBorder(null);
         btnClearUser.addActionListener(this::btnClearUserActionPerformed);
 
+        btnResetUser.setBackground(new java.awt.Color(245, 158, 11));
+        btnResetUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnResetUser.setForeground(new java.awt.Color(255, 255, 255));
+        btnResetUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_password_25px_1.png"))); // NOI18N
+        btnResetUser.setText("Reset User");
+        btnResetUser.setBorder(null);
+        btnResetUser.setFocusPainted(false);
+        btnResetUser.addActionListener(this::btnResetUserActionPerformed);
+
         jPasswordField1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
@@ -1794,7 +2007,7 @@ public class Dashbord extends javax.swing.JFrame {
         lblUserID.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
 
         jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_password_25px_1.png"))); // NOI18N
+        jLabel10.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_lock_25px.png"))); // NOI18N
         jLabel10.setText("Change Default Password");
         jLabel10.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -1856,7 +2069,10 @@ public class Dashbord extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addGap(70, 70, 70)
+                                .addComponent(btnResetUser, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGap(39, 39, 39)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -1918,7 +2134,9 @@ public class Dashbord extends javax.swing.JFrame {
                     .addComponent(btnUpdateUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDeleteUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnClearUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(162, Short.MAX_VALUE))
+                .addGap(12, 12, 12)
+                .addComponent(btnResetUser, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(118, Short.MAX_VALUE))
         );
 
         user_Management.add(jPanel4, java.awt.BorderLayout.LINE_START);
@@ -2100,7 +2318,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelInstFormFields.add(lblInstCategory);
 
         cmbInstCategory.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        cmbInstCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Class B (Dual Purpose / Car)", "Class A (Motorcycle)", "Class B1 (Auto Light Vehicle)", " Class A & B (Combo)", "Class C (Heavy Vehicle)", "Class D (Bus)" }));
+        cmbInstCategory.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Class B (Dual Purpose / Car)", "Class A (Motorcycle)", "Class B1 (Auto Light Vehicle)", "Class A & B (Combo)", "Class C (Heavy Vehicle)", "Class D (Bus)" }));
         panelInstFormFields.add(cmbInstCategory);
 
         lblInstStatus.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2109,7 +2327,7 @@ public class Dashbord extends javax.swing.JFrame {
         panelInstFormFields.add(lblInstStatus);
 
         cmbInstStatus.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        cmbInstStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { " Available", "On Duty", "On Leave" }));
+        cmbInstStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Available", "On Duty", "On Leave" }));
         panelInstFormFields.add(cmbInstStatus);
 
         scrollInstForm.setViewportView(panelInstFormFields);
@@ -2713,7 +2931,7 @@ public class Dashbord extends javax.swing.JFrame {
         txtBkId.setBackground(new java.awt.Color(241, 245, 249));
         txtBkId.setFont(new java.awt.Font("Segoe UI", 1, 13)); // NOI18N
         txtBkId.setForeground(new java.awt.Color(29, 78, 216));
-        txtBkId.setText("BK-2042");
+        txtBkId.setText("BK-Auto");
         panelBkFormFields.add(txtBkId);
 
         lblBkStudent.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -2801,15 +3019,17 @@ public class Dashbord extends javax.swing.JFrame {
         btnBkUpdate.setText(" Update");
         btnBkUpdate.setFocusPainted(false);
         btnBkUpdate.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBkUpdate.addActionListener(this::btnBkUpdateActionPerformed);
         panelBkFormActions.add(btnBkUpdate);
 
         btnBkDelete.setBackground(new java.awt.Color(220, 38, 38));
         btnBkDelete.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         btnBkDelete.setForeground(new java.awt.Color(255, 255, 255));
         btnBkDelete.setIcon(new javax.swing.ImageIcon(getClass().getResource("/icon/icons8_Delete_25px.png"))); // NOI18N
-        btnBkDelete.setText(" Cancel");
+        btnBkDelete.setText("Delete");
         btnBkDelete.setFocusPainted(false);
         btnBkDelete.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBkDelete.addActionListener(this::btnBkDeleteActionPerformed);
         panelBkFormActions.add(btnBkDelete);
 
         btnBkClear.setBackground(new java.awt.Color(100, 116, 139));
@@ -2819,6 +3039,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBkClear.setText(" Clear");
         btnBkClear.setFocusPainted(false);
         btnBkClear.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBkClear.addActionListener(this::btnBkClearActionPerformed);
         panelBkFormActions.add(btnBkClear);
 
         panelBkFormCard.add(panelBkFormActions, java.awt.BorderLayout.PAGE_END);
@@ -2853,6 +3074,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBkRefresh.setText("Refresh");
         btnBkRefresh.setFocusPainted(false);
         btnBkRefresh.setPreferredSize(new java.awt.Dimension(80, 32));
+        btnBkRefresh.addActionListener(this::btnBkRefreshActionPerformed);
         panelBkSearchFilter.add(btnBkRefresh);
 
         panelBkTableTop.add(panelBkSearchFilter, java.awt.BorderLayout.LINE_END);
@@ -2868,14 +3090,7 @@ public class Dashbord extends javax.swing.JFrame {
 
         tableBookings.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"#BK-2041", "Chamika Silva", "Kamal Perera", "Toyota Vitz (Auto)", "Highway & Parking", "Today, 09:30 AM", "In Progress"},
-                {"#BK-2040", "Nimasha Fernando", "Sunil Shantha", "Suzuki Alto (Manual)", "Basic Driving Skills", "Today, 11:00 AM", "Confirmed"},
-                {"#BK-2039", "Kasun Bandara", "Kamal Perera", "Toyota Aqua (Hybrid)", "Reverse & Hill Start", "Today, 01:30 PM", "Confirmed"},
-                {"#BK-2038", "Dilshan Perera", "Nimal Jayasinghe", "Honda Grace (Auto)", "Traffic Road Test", "Yesterday, 03:00 PM", "Completed"},
-                {"#BK-2037", "Anuki Wickrama", "Sunil Shantha", "Suzuki Alto (Manual)", "Night Driving Practice", "Tomorrow, 04:00 PM", "Pending"},
-                {"#BK-2036", "Sandun Rodrigo", "Kamal Perera", "Toyota Vitz (Auto)", "City Traffic Maneuvering", "Tomorrow, 10:00 AM", "Confirmed"},
-                {"#BK-2035", "Ruvini Gunasekara", "Robert Silva", "Toyota Vitz (Auto)", "Basic Driving Skills", "24 Sep, 02:00 PM", "Confirmed"},
-                {"#BK-2034", "Thilina Madushan", "Sunil Fernando", "Toyota HiAce (Van)", "Commercial Van License", "25 Sep, 08:30 AM", "Pending"}
+
             },
             new String [] {
                 "Booking ID", "Student Name", "Instructor", "Vehicle", "Lesson Type", "Date & Time", "Status"
@@ -2892,6 +3107,11 @@ public class Dashbord extends javax.swing.JFrame {
         tableBookings.setRowHeight(32);
         tableBookings.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tableBookings.setShowGrid(false);
+        tableBookings.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableBookingsMouseClicked(evt);
+            }
+        });
         scrollBkTable.setViewportView(tableBookings);
 
         panelBkTableCard.add(scrollBkTable, java.awt.BorderLayout.CENTER);
@@ -3120,6 +3340,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBmConfirm.setText(" Confirm Slot");
         btnBmConfirm.setFocusPainted(false);
         btnBmConfirm.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBmConfirm.addActionListener(this::btnBmConfirmActionPerformed);
         panelBmFormActions.add(btnBmConfirm);
 
         btnBmReschedule.setBackground(new java.awt.Color(5, 150, 105));
@@ -3129,6 +3350,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBmReschedule.setText(" Reassign");
         btnBmReschedule.setFocusPainted(false);
         btnBmReschedule.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBmReschedule.addActionListener(this::btnBmRescheduleActionPerformed);
         panelBmFormActions.add(btnBmReschedule);
 
         btnBmCancel.setBackground(new java.awt.Color(220, 38, 38));
@@ -3138,6 +3360,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBmCancel.setText(" Cancel Slot");
         btnBmCancel.setFocusPainted(false);
         btnBmCancel.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBmCancel.addActionListener(this::btnBmCancelActionPerformed);
         panelBmFormActions.add(btnBmCancel);
 
         btnBmClear.setBackground(new java.awt.Color(100, 116, 139));
@@ -3147,6 +3370,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBmClear.setText(" Clear Form");
         btnBmClear.setFocusPainted(false);
         btnBmClear.setPreferredSize(new java.awt.Dimension(120, 36));
+        btnBmClear.addActionListener(this::btnBmClearActionPerformed);
         panelBmFormActions.add(btnBmClear);
 
         panelBmFormCard.add(panelBmFormActions, java.awt.BorderLayout.PAGE_END);
@@ -3181,6 +3405,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnBmRefresh.setText("Refresh");
         btnBmRefresh.setFocusPainted(false);
         btnBmRefresh.setPreferredSize(new java.awt.Dimension(80, 32));
+        btnBmRefresh.addActionListener(this::btnBmRefreshActionPerformed);
         panelBmSearchFilter.add(btnBmRefresh);
 
         panelBmTableTop.add(panelBmSearchFilter, java.awt.BorderLayout.LINE_END);
@@ -3191,14 +3416,7 @@ public class Dashbord extends javax.swing.JFrame {
 
         tableBookingManagement.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"BK-2041", "Chamika Silva", "Kamal Perera", "Toyota Vitz (CAB-4512)", "2026-09-23", "08:30 AM - 10:00 AM", "Confirmed"},
-                {"BK-2042", "Nadeesha Fernando", "Robert Silva", "Suzuki Alto (WP-3321)", "2026-09-23", "10:30 AM - 12:00 PM", "In Progress"},
-                {"BK-2043", "Dinesh Jayawardena", "Sunil Fernando", "Toyota HiAce (ND-5561)", "2026-09-23", "01:00 PM - 02:30 PM", "Pending Approval"},
-                {"BK-2044", "Anuki Senaratne", "Amila Bandara", "Toyota Aqua (SP-8921)", "2026-09-23", "03:00 PM - 04:30 PM", "Confirmed"},
-                {"BK-2045", "Kasun Wickramasinghe", "Nimal Jayasinghe", "Yamaha FZ (BIKE-402)", "2026-09-24", "08:30 AM - 10:00 AM", "Rescheduled"},
-                {"BK-2046", "Sachini Jayasuriya", "Kamal Perera", "Toyota Vitz (CAB-4512)", "2026-09-24", "10:30 AM - 12:00 PM", "Confirmed"},
-                {"BK-2047", "Ruwan Gamage", "Robert Silva", "Suzuki Alto (WP-3321)", "2026-09-24", "01:00 PM - 02:30 PM", "Completed"},
-                {"BK-2048", "Maleesha De Silva", "Sunil Fernando", "Toyota HiAce (ND-5561)", "2026-09-25", "03:00 PM - 04:30 PM", "Cancelled"}
+
             },
             new String [] {
                 "Booking Ref", "Student Name", "Instructor", "Assigned Vehicle", "Date", "Time Slot", "Status"
@@ -3215,6 +3433,11 @@ public class Dashbord extends javax.swing.JFrame {
         tableBookingManagement.setRowHeight(32);
         tableBookingManagement.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tableBookingManagement.setShowGrid(false);
+        tableBookingManagement.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableBookingManagementMouseClicked(evt);
+            }
+        });
         scrollBmTable.setViewportView(tableBookingManagement);
 
         panelBmTableCard.add(scrollBmTable, java.awt.BorderLayout.CENTER);
@@ -3244,8 +3467,15 @@ public class Dashbord extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnDashboardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDashboardActionPerformed
+        loadDashboardData();
         switchCard("cardDashboard");
     }//GEN-LAST:event_btnDashboardActionPerformed
+
+    private void btnViewAllBookingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnViewAllBookingsActionPerformed
+        loadBookingDropdowns();
+        loadBookingTable();
+        switchCard("cardBookings");
+    }//GEN-LAST:event_btnViewAllBookingsActionPerformed
 
     private void btnStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStudentActionPerformed
         switchCard("cardStudents");
@@ -3316,9 +3546,13 @@ public class Dashbord extends javax.swing.JFrame {
 
     private void btnBookingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBookingActionPerformed
         switchCard("cardBookings");
+        loadBookingDropdowns();
+        loadBookingTable();
     }//GEN-LAST:event_btnBookingActionPerformed
 
     private void btnBookingManageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBookingManageActionPerformed
+        loadBookingManagementDropdowns();
+        loadBookingManagementTable();
         switchCard("cardBookingManagement");
     }//GEN-LAST:event_btnBookingManageActionPerformed
 
@@ -3363,6 +3597,7 @@ public class Dashbord extends javax.swing.JFrame {
                 btnUpdateUser.setVisible(true);
                 btnDeleteUser.setVisible(true);
                 btnClearUser.setVisible(true);
+                btnResetUser.setVisible(true);
             }
 
             if (!roleStr.isEmpty()) {
@@ -3755,6 +3990,86 @@ public class Dashbord extends javax.swing.JFrame {
         clearForm();
     }//GEN-LAST:event_btnClearUserActionPerformed
 
+    private void btnResetUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetUserActionPerformed
+        String userIdStr = lblUserID.getText().trim();
+        if (userIdStr.isEmpty()) {
+            int selectedRow = jTable1.getSelectedRow();
+            if (selectedRow >= 0) {
+                Object val = jTable1.getValueAt(selectedRow, 0);
+                userIdStr = (val != null) ? val.toString().trim() : "";
+            }
+        }
+
+        if (userIdStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a user from the table first to reset!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int userId;
+        try {
+            userId = Integer.parseInt(userIdStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Invalid User ID format!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String checkSql = "SELECT username, first_time FROM users WHERE user_id = ?";
+        try (PreparedStatement checkPst = conn.prepareStatement(checkSql)) {
+            checkPst.setInt(1, userId);
+            try (ResultSet rs = checkPst.executeQuery()) {
+                if (!rs.next()) {
+                    JOptionPane.showMessageDialog(this, "User record not found in database!", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                String username = rs.getString("username");
+                int firstTime = rs.getInt("first_time");
+                boolean isNull = rs.wasNull();
+
+                if (!isNull && firstTime == 0) {
+                    JOptionPane.showMessageDialog(this, "User '" + username + "' is already reset (first-time login flag is already 0)!", "Already Reset", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                int confirm = JOptionPane.showConfirmDialog(
+                        this,
+                        "User '" + username + "' (ID: " + userId + ") has first-time login flag set to 1.\nAre you sure you want to reset it to 0?",
+                        "Confirm Reset User",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE
+                );
+                if (confirm != JOptionPane.YES_OPTION) {
+                    return;
+                }
+
+                String updateSql = "UPDATE users SET first_time = 0 WHERE user_id = ?";
+                try (PreparedStatement updatePst = conn.prepareStatement(updateSql)) {
+                    updatePst.setInt(1, userId);
+                    int affected = updatePst.executeUpdate();
+                    if (affected > 0) {
+                        JOptionPane.showMessageDialog(this, "User '" + username + "' first-time login flag successfully reset to 0!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        CheckFirstTimeLog.setSelected(true);
+                        loadUsers();
+                        clearForm();
+                        btnAddUser.setVisible(true);
+                        btnhide();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Failed to update user record.", "Update Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to reset user first_time flag", ex);
+            JOptionPane.showMessageDialog(this, "Database Error: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnResetUserActionPerformed
+
     private void jLabel10MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel10MouseClicked
         new changeDefaultPassword(currentUsername, currentRole).setVisible(true);
     }//GEN-LAST:event_jLabel10MouseClicked
@@ -3854,28 +4169,36 @@ public class Dashbord extends javax.swing.JFrame {
             return;
         }
 
-        // 6. Insert new student
-        String insertSql = "INSERT INTO students (full_name, nic, phone, address, vehicle_class, status) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement pst = conn.prepareStatement(insertSql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-            pst.setString(1, name);
-            pst.setString(2, nic);
-            pst.setString(3, phone);
-            pst.setString(4, address);
-            pst.setString(5, vClass);
-            pst.setString(6, status);
+        // Determine unique student ID
+        int stuId;
+        String stuIdStr = lblStudentIDVal.getText().trim();
+        try {
+            stuId = Integer.parseInt(stuIdStr.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            stuId = 0;
+        }
+        if (stuId <= 0 || isStudentIdExists(stuId)) {
+            stuId = generateUniqueStudentId();
+        }
+
+        // 6. Insert new student with explicit unique student_id
+        String insertSql = "INSERT INTO students (student_id, full_name, nic, phone, address, vehicle_class, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pst = conn.prepareStatement(insertSql)) {
+            pst.setInt(1, stuId);
+            pst.setString(2, name);
+            pst.setString(3, nic);
+            pst.setString(4, phone);
+            pst.setString(5, address);
+            pst.setString(6, vClass);
+            pst.setString(7, status);
 
             int affected = pst.executeUpdate();
             if (affected > 0) {
-                String genIdStr = "";
-                try (ResultSet genKeys = pst.getGeneratedKeys()) {
-                    if (genKeys.next()) {
-                        int genId = genKeys.getInt(1);
-                        genIdStr = String.format(" (STU-%04d)", genId);
-                    }
-                }
+                String genIdStr = String.format(" (STU-%04d)", stuId);
                 JOptionPane.showMessageDialog(this, "Student registered successfully!" + genIdStr, "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadStudents();
                 clearStudentForm();
+                loadDashboardData();
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, null, ex);
@@ -3889,10 +4212,14 @@ public class Dashbord extends javax.swing.JFrame {
     }//GEN-LAST:event_btnActionRegisterMouseClicked
 
     private void btnActionBookingMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActionBookingMouseClicked
+        loadBookingDropdowns();
+        loadBookingTable();
         switchCard("cardBookings");
     }//GEN-LAST:event_btnActionBookingMouseClicked
 
     private void btnActionManageMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnActionManageMouseClicked
+        loadBookingManagementDropdowns();
+        loadBookingManagementTable();
         switchCard("cardBookingManagement");
     }//GEN-LAST:event_btnActionManageMouseClicked
 
@@ -4024,6 +4351,7 @@ public class Dashbord extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Student updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadStudents();
                 clearStudentForm();
+                loadDashboardData();
             } else {
                 JOptionPane.showMessageDialog(this, "No student record was updated. Please verify that the student exists.", "Update Failed", JOptionPane.WARNING_MESSAGE);
             }
@@ -4082,6 +4410,7 @@ public class Dashbord extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(this, "Student deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     loadStudents();
                     clearStudentForm();
+                    loadDashboardData();
                 } else {
                     JOptionPane.showMessageDialog(this, "No student record was deleted. The record may have already been removed.", "Delete Failed", JOptionPane.WARNING_MESSAGE);
                 }
@@ -4200,28 +4529,36 @@ public class Dashbord extends javax.swing.JFrame {
             return;
         }
 
-        // 7. Insert instructor
-        String insertSql = "INSERT INTO instructors (full_name, phone, nic, license_no, vehicle_class, status) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement pst = conn.prepareStatement(insertSql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-            pst.setString(1, name);
-            pst.setString(2, phone);
-            pst.setString(3, nic.isEmpty() ? null : nic);
-            pst.setString(4, license);
-            pst.setString(5, vClass);
-            pst.setString(6, status);
+        // Determine unique instructor ID
+        int instId;
+        String instIdStr = txtInstId.getText().trim();
+        try {
+            instId = Integer.parseInt(instIdStr.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            instId = 0;
+        }
+        if (instId <= 0 || isInstructorIdExists(instId)) {
+            instId = generateUniqueInstructorId();
+        }
+
+        // 7. Insert instructor with explicit unique instructor_id
+        String insertSql = "INSERT INTO instructors (instructor_id, full_name, phone, nic, license_no, vehicle_class, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pst = conn.prepareStatement(insertSql)) {
+            pst.setInt(1, instId);
+            pst.setString(2, name);
+            pst.setString(3, phone);
+            pst.setString(4, nic.isEmpty() ? null : nic);
+            pst.setString(5, license);
+            pst.setString(6, vClass);
+            pst.setString(7, status);
 
             int affected = pst.executeUpdate();
             if (affected > 0) {
-                String genIdStr = "";
-                try (ResultSet genKeys = pst.getGeneratedKeys()) {
-                    if (genKeys.next()) {
-                        int genId = genKeys.getInt(1);
-                        genIdStr = String.format(" (INS-%03d)", genId);
-                    }
-                }
+                String genIdStr = String.format(" (INS-%03d)", instId);
                 JOptionPane.showMessageDialog(this, "Instructor added successfully!" + genIdStr, "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadInstructors();
                 clearInstructorForm();
+                loadDashboardData();
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, null, ex);
@@ -4379,6 +4716,7 @@ public class Dashbord extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Instructor updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadInstructors();
                 clearInstructorForm();
+                loadDashboardData();
             } else {
                 JOptionPane.showMessageDialog(this, "No instructor record was updated. Please verify that the instructor exists.", "Update Failed", JOptionPane.WARNING_MESSAGE);
             }
@@ -4437,6 +4775,7 @@ public class Dashbord extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(this, "Instructor deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     loadInstructors();
                     clearInstructorForm();
+                    loadDashboardData();
                 } else {
                     JOptionPane.showMessageDialog(this, "No instructor record was deleted. The record may have already been removed.", "Delete Failed", JOptionPane.WARNING_MESSAGE);
                 }
@@ -4538,30 +4877,38 @@ public class Dashbord extends javax.swing.JFrame {
             return;
         }
 
-        // 5. Insert vehicle into DB
-        String insertSql = "INSERT INTO vehicles (vehicle_number, vehicle_type, model, vehicle_class, transmission, fuel_type, status, mileage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement pst = conn.prepareStatement(insertSql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
-            pst.setString(1, plate);
-            pst.setString(2, vClass.length() > 50 ? vClass.substring(0, 50) : vClass);
-            pst.setString(3, model);
-            pst.setString(4, vClass);
-            pst.setString(5, transmission);
-            pst.setString(6, fuel);
-            pst.setString(7, status);
-            pst.setString(8, mileage.isEmpty() ? null : mileage);
+        // Determine unique vehicle ID
+        int vehId;
+        String vehIdStr = txtVehId.getText().trim();
+        try {
+            vehId = Integer.parseInt(vehIdStr.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            vehId = 0;
+        }
+        if (vehId <= 0 || isVehicleIdExists(vehId)) {
+            vehId = generateUniqueVehicleId();
+        }
+
+        // 5. Insert vehicle into DB with explicit unique vehicle_id
+        String insertSql = "INSERT INTO vehicles (vehicle_id, vehicle_number, vehicle_type, model, vehicle_class, transmission, fuel_type, status, mileage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pst = conn.prepareStatement(insertSql)) {
+            pst.setInt(1, vehId);
+            pst.setString(2, plate);
+            pst.setString(3, vClass.length() > 50 ? vClass.substring(0, 50) : vClass);
+            pst.setString(4, model);
+            pst.setString(5, vClass);
+            pst.setString(6, transmission);
+            pst.setString(7, fuel);
+            pst.setString(8, status);
+            pst.setString(9, mileage.isEmpty() ? null : mileage);
 
             int affected = pst.executeUpdate();
             if (affected > 0) {
-                String genIdStr = "";
-                try (ResultSet genKeys = pst.getGeneratedKeys()) {
-                    if (genKeys.next()) {
-                        int genId = genKeys.getInt(1);
-                        genIdStr = String.format(" (VEH-%03d)", genId);
-                    }
-                }
+                String genIdStr = String.format(" (VEH-%03d)", vehId);
                 JOptionPane.showMessageDialog(this, "Vehicle added successfully!" + genIdStr, "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadVehicles();
                 clearVehicleForm();
+                loadDashboardData();
             }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, null, ex);
@@ -4694,6 +5041,7 @@ public class Dashbord extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Vehicle updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 loadVehicles();
                 clearVehicleForm();
+                loadDashboardData();
             } else {
                 JOptionPane.showMessageDialog(this, "No vehicle record was updated. Please verify that the vehicle exists.", "Update Failed", JOptionPane.WARNING_MESSAGE);
             }
@@ -4767,6 +5115,7 @@ public class Dashbord extends javax.swing.JFrame {
                     JOptionPane.showMessageDialog(this, "Vehicle deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     loadVehicles();
                     clearVehicleForm();
+                    loadDashboardData();
                 } else {
                     JOptionPane.showMessageDialog(this, "No vehicle record was deleted. The record may have already been removed.", "Delete Failed", JOptionPane.WARNING_MESSAGE);
                 }
@@ -4785,6 +5134,102 @@ public class Dashbord extends javax.swing.JFrame {
         loadVehicles();
         clearVehicleForm();
     }//GEN-LAST:event_btnVehClearActionPerformed
+
+    /**
+     * Loads dynamic data from the database into the Bookings ComboBoxes:
+     * - Student Name (txtBkStudent) from 'students' table
+     * - Assigned Instructor (cmbBkInstructor) from 'instructors' table
+     * - Training Vehicle (cmbBkVehicle) from 'vehicles' table
+     */
+    public void loadBookingDropdowns() {
+        Connection conn = getConnection();
+        if (conn == null) {
+            return;
+        }
+
+        // 1. Load Students into txtBkStudent dropdown
+        txtBkStudent.removeAllItems();
+        txtBkStudent.addItem("-- Select Student --");
+        String studentSql = "SELECT full_name FROM students ORDER BY full_name ASC";
+        try (PreparedStatement pst = conn.prepareStatement(studentSql);
+             ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                String name = rs.getString("full_name");
+                if (name != null && !name.trim().isEmpty()) {
+                    txtBkStudent.addItem(name.trim());
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load students for bookings dropdown", ex);
+        }
+
+        // 2. Load Instructors into cmbBkInstructor dropdown
+        cmbBkInstructor.removeAllItems();
+        cmbBkInstructor.addItem("-- Select Instructor --");
+        String instSql = "SELECT full_name FROM instructors ORDER BY full_name ASC";
+        try (PreparedStatement pst = conn.prepareStatement(instSql);
+             ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                String name = rs.getString("full_name");
+                if (name != null && !name.trim().isEmpty()) {
+                    cmbBkInstructor.addItem(name.trim());
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load instructors for bookings dropdown", ex);
+        }
+
+        // 3. Load Vehicles into cmbBkVehicle dropdown
+        cmbBkVehicle.removeAllItems();
+        cmbBkVehicle.addItem("-- Select Vehicle --");
+        String vehSql = "SELECT model, transmission, vehicle_number FROM vehicles ORDER BY model ASC";
+        try (PreparedStatement pst = conn.prepareStatement(vehSql);
+             ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                String model = rs.getString("model");
+                String trans = rs.getString("transmission");
+                String plate = rs.getString("vehicle_number");
+
+                String displayVeh = (model != null && !model.trim().isEmpty()) ? model.trim() : "Vehicle";
+                if (trans != null && !trans.trim().isEmpty()) {
+                    displayVeh += " (" + trans.trim() + ")";
+                }
+                if (plate != null && !plate.trim().isEmpty()) {
+                    displayVeh += " [" + plate.trim() + "]";
+                }
+                cmbBkVehicle.addItem(displayVeh);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load vehicles for bookings dropdown", ex);
+        }
+    }
+
+    private void initBookingComponents() {
+        // Initialize status filter combo box if empty
+        if (cmbBkFilterStatus.getItemCount() == 0) {
+            cmbBkFilterStatus.setModel(new DefaultComboBoxModel<>(new String[]{
+                "All Statuses", "Pending", "Confirmed", "Booked", "In Progress", "Completed", "Cancelled"
+            }));
+        }
+
+        // Search textfield action
+        txtBkSearch.addActionListener(e -> {
+            String kw = txtBkSearch.getText().trim();
+            String st = (String) cmbBkFilterStatus.getSelectedItem();
+            loadBookingTable(kw, st);
+        });
+
+        // Status filter action
+        cmbBkFilterStatus.addActionListener(e -> {
+            String kw = txtBkSearch.getText().trim();
+            String st = (String) cmbBkFilterStatus.getSelectedItem();
+            loadBookingTable(kw, st);
+        });
+
+        loadBookingDropdowns();
+        LoadBookingTable();
+        clearBookingForm();
+    }
 
     private void btnBkAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkAddActionPerformed
         // ==========================================
@@ -4843,83 +5288,196 @@ public class Dashbord extends javax.swing.JFrame {
 
         // 6. Fallback for Status and Payment if not selected
         if (status.isEmpty() || status.startsWith("--")) {
-            status = "Booked";
+            status = "Pending";
         }
         if (payment.isEmpty() || payment.startsWith("--")) {
             payment = "Pending";
         }
 
-        // If Booking ID is blank or default, format it nicely
-        if (bookingId.isEmpty()) {
-            bookingId = "BK-" + (2042 + tableBookings.getRowCount());
+        // ==========================================
+        // STEP 3: Database Connection & ID Lookups
+        // ==========================================
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available! Please check MySQL connection.", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
-        String displayId = bookingId.startsWith("#") ? bookingId : "#" + bookingId;
 
-        // ==========================================
-        // STEP 3: Add Booking record to Table
-        // ==========================================
-        DefaultTableModel model = (DefaultTableModel) tableBookings.getModel();
-        
-        // Add new booking at the very top of the table (row 0)
-        model.insertRow(0, new Object[]{
-            displayId,
-            student,
-            instructor,
-            vehicle,
-            lessonType,
-            dateTime,
-            status
-        });
+        int studentId = -1;
+        int instructorId = -1;
+        int vehicleId = -1;
 
-        // ==========================================
-        // STEP 4: Update Summary Badges & Counters
-        // ==========================================
-        int totalRows = model.getRowCount();
-        lblBkBadgeTotalCount.setText(String.valueOf(totalRows));
-
-        int confirmedCount = 0;
-        int pendingCount = 0;
-        for (int i = 0; i < totalRows; i++) {
-            Object rowStatus = model.getValueAt(i, 6);
-            if (rowStatus != null) {
-                String st = rowStatus.toString().trim();
-                if (st.equalsIgnoreCase("Confirmed")) {
-                    confirmedCount++;
-                } else if (st.equalsIgnoreCase("Pending") || st.equalsIgnoreCase("Booked") || st.equalsIgnoreCase("In Progress")) {
-                    pendingCount++;
+        try {
+            // 3.1 Lookup student_id from students table
+            String sSql = "SELECT student_id FROM students WHERE full_name = ? LIMIT 1";
+            try (PreparedStatement sPst = conn.prepareStatement(sSql)) {
+                sPst.setString(1, student);
+                try (ResultSet rs = sPst.executeQuery()) {
+                    if (rs.next()) {
+                        studentId = rs.getInt("student_id");
+                    }
                 }
             }
-        }
-        lblBkBadgeConfirmedCount.setText(String.valueOf(confirmedCount));
-        lblBkBadgePendingCount.setText(String.valueOf(pendingCount));
+            if (studentId == -1) {
+                String sSqlLike = "SELECT student_id FROM students WHERE full_name LIKE ? LIMIT 1";
+                try (PreparedStatement sPst = conn.prepareStatement(sSqlLike)) {
+                    sPst.setString(1, "%" + student + "%");
+                    try (ResultSet rs = sPst.executeQuery()) {
+                        if (rs.next()) {
+                            studentId = rs.getInt("student_id");
+                        }
+                    }
+                }
+            }
+            if (studentId == -1) {
+                JOptionPane.showMessageDialog(this, "Student '" + student + "' not found in database!\nPlease add the student in Student Management first.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-        // ==========================================
-        // STEP 5: Success Message & Reset Form
-        // ==========================================
-        JOptionPane.showMessageDialog(this, "Booking slot created successfully!\nBooking ID: " + displayId, "Success", JOptionPane.INFORMATION_MESSAGE);
+            // 3.2 Lookup instructor_id from instructors table
+            String iSql = "SELECT instructor_id FROM instructors WHERE full_name = ? LIMIT 1";
+            try (PreparedStatement iPst = conn.prepareStatement(iSql)) {
+                iPst.setString(1, instructor);
+                try (ResultSet rs = iPst.executeQuery()) {
+                    if (rs.next()) {
+                        instructorId = rs.getInt("instructor_id");
+                    }
+                }
+            }
+            if (instructorId == -1) {
+                String iSqlLike = "SELECT instructor_id FROM instructors WHERE full_name LIKE ? LIMIT 1";
+                try (PreparedStatement iPst = conn.prepareStatement(iSqlLike)) {
+                    iPst.setString(1, "%" + instructor + "%");
+                    try (ResultSet rs = iPst.executeQuery()) {
+                        if (rs.next()) {
+                            instructorId = rs.getInt("instructor_id");
+                        }
+                    }
+                }
+            }
+            if (instructorId == -1) {
+                JOptionPane.showMessageDialog(this, "Instructor '" + instructor + "' not found in database!\nPlease add the instructor in Instructor Management first.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-        // Prepare the next booking ID
-        txtBkId.setText("BK-" + (2043 + totalRows));
+            // 3.3 Lookup vehicle_id from vehicles table
+            String plate = "";
+            int bStart = vehicle.lastIndexOf('[');
+            int bEnd = vehicle.lastIndexOf(']');
+            if (bStart >= 0 && bEnd > bStart) {
+                plate = vehicle.substring(bStart + 1, bEnd).trim();
+            }
+            if (!plate.isEmpty()) {
+                String vSql = "SELECT vehicle_id FROM vehicles WHERE vehicle_number = ? LIMIT 1";
+                try (PreparedStatement vPst = conn.prepareStatement(vSql)) {
+                    vPst.setString(1, plate);
+                    try (ResultSet rs = vPst.executeQuery()) {
+                        if (rs.next()) {
+                            vehicleId = rs.getInt("vehicle_id");
+                        }
+                    }
+                }
+            }
+            if (vehicleId == -1) {
+                String cleanModel = vehicle.split("\\(")[0].trim();
+                String vSql2 = "SELECT vehicle_id FROM vehicles WHERE model LIKE ? OR vehicle_number LIKE ? LIMIT 1";
+                try (PreparedStatement vPst = conn.prepareStatement(vSql2)) {
+                    vPst.setString(1, "%" + cleanModel + "%");
+                    vPst.setString(2, "%" + cleanModel + "%");
+                    try (ResultSet rs = vPst.executeQuery()) {
+                        if (rs.next()) {
+                            vehicleId = rs.getInt("vehicle_id");
+                        }
+                    }
+                }
+            }
+            if (vehicleId == -1) {
+                JOptionPane.showMessageDialog(this, "Vehicle '" + vehicle + "' not found in database!\nPlease add the vehicle in Vehicle Management first.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-        // Reset inputs
-        if (txtBkStudent.getItemCount() > 0) {
-            txtBkStudent.setSelectedIndex(0);
-        }
-        if (cmbBkInstructor.getItemCount() > 0) {
-            cmbBkInstructor.setSelectedIndex(0);
-        }
-        if (cmbBkVehicle.getItemCount() > 0) {
-            cmbBkVehicle.setSelectedIndex(0);
-        }
-        if (cmbBkLessonType.getItemCount() > 0) {
-            cmbBkLessonType.setSelectedIndex(0);
-        }
-        txtBkDateTime.setText("");
-        if (cmbBkStatus.getItemCount() > 0) {
-            cmbBkStatus.setSelectedIndex(0);
-        }
-        if (cmbBkPayment.getItemCount() > 0) {
-            cmbBkPayment.setSelectedIndex(0);
+            // ==========================================
+            // STEP 4: Parse Date & Time
+            // ==========================================
+            LocalDate bookingDate = LocalDate.now();
+            LocalTime startTime = LocalTime.of(10, 0, 0);
+            LocalTime endTime = LocalTime.of(11, 0, 0);
+
+            String dtLower = dateTime.toLowerCase();
+            if (dtLower.contains("tomorrow")) {
+                bookingDate = LocalDate.now().plusDays(1);
+            } else {
+                Matcher dm = Pattern.compile("\\b(\\d{4}-\\d{2}-\\d{2})\\b").matcher(dateTime);
+                if (dm.find()) {
+                    try {
+                        bookingDate = LocalDate.parse(dm.group(1));
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            Matcher tm = Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(am|pm)?", Pattern.CASE_INSENSITIVE).matcher(dateTime);
+            if (tm.find()) {
+                int hour = Integer.parseInt(tm.group(1));
+                int min = Integer.parseInt(tm.group(2));
+                String ampm = tm.group(3);
+                if (ampm != null) {
+                    if (ampm.equalsIgnoreCase("pm") && hour < 12) {
+                        hour += 12;
+                    } else if (ampm.equalsIgnoreCase("am") && hour == 12) {
+                        hour = 0;
+                    }
+                }
+                if (hour >= 0 && hour <= 23 && min >= 0 && min <= 59) {
+                    startTime = LocalTime.of(hour, min, 0);
+                    endTime = startTime.plusHours(1);
+                }
+            }
+
+            // ==========================================
+            // STEP 5: INSERT Into 'bookings' Database Table
+            // ==========================================
+            int bId = -1;
+            String bIdStr = txtBkId.getText().trim();
+            try {
+                String clean = bIdStr.replaceAll("[^0-9]", "");
+                if (!clean.isEmpty()) {
+                    bId = Integer.parseInt(clean);
+                }
+            } catch (Exception ignored) {}
+
+            if (bId <= 0 || isBookingIdExists(bId)) {
+                bId = generateUniqueBookingId();
+            }
+
+            String insertSql = "INSERT INTO bookings (booking_id, student_id, instructor_id, vehicle_id, booking_date, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            int newBookingId = bId;
+            try (PreparedStatement insPst = conn.prepareStatement(insertSql)) {
+                insPst.setInt(1, bId);
+                insPst.setInt(2, studentId);
+                insPst.setInt(3, instructorId);
+                insPst.setInt(4, vehicleId);
+                insPst.setDate(5, Date.valueOf(bookingDate));
+                insPst.setTime(6, Time.valueOf(startTime));
+                insPst.setTime(7, Time.valueOf(endTime));
+                insPst.setString(8, status);
+
+                insPst.executeUpdate();
+            }
+
+            // ==========================================
+            // STEP 6: Refresh Table from Database & Reset Form
+            // ==========================================
+            LoadBookingTable();
+            loadBookingManagementTable();
+            clearBookingForm();
+            loadDashboardData();
+
+            String displayId = String.format("#BK-%04d", newBookingId);
+            JOptionPane.showMessageDialog(this, "Booking slot created and saved to database successfully!\nBooking ID: " + displayId, "Success", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to insert booking into database", ex);
+            JOptionPane.showMessageDialog(this, "Database Error while saving booking:\n" + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnBkAddActionPerformed
 
@@ -4989,9 +5547,1348 @@ public class Dashbord extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_tableVehiclesMouseClicked
 
+    // =========================================================================
+    // BOOKINGS TABLE EVENTS & METHODS (Accessible directly from NetBeans Design View)
+    // =========================================================================
+
+    /**
+     * NetBeans Design View Event: scrollBkTable -> Events -> Mouse -> mouseClicked
+     */
     private void scrollBkTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_scrollBkTableMouseClicked
-        // TODO add your handling code here:
+        loadSelectedBookingToForm();
     }//GEN-LAST:event_scrollBkTableMouseClicked
+
+    /**
+     * NetBeans Design View Event: tableBookings -> Events -> Mouse -> mouseClicked
+     */
+    private void tableBookingsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableBookingsMouseClicked
+        loadSelectedBookingToForm();
+    }//GEN-LAST:event_tableBookingsMouseClicked
+
+    /**
+     * NetBeans Design View Event: btnBkUpdate -> Events -> Action -> actionPerformed
+     * Updates the selected practical booking slot in the database.
+     */
+    private void btnBkUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkUpdateActionPerformed
+        // 1. Get Booking ID
+        String bookingIdStr = txtBkId.getText().trim();
+        if (bookingIdStr.isEmpty() || bookingIdStr.startsWith("BK-Auto")) {
+            int selectedRow = tableBookings.getSelectedRow();
+            if (selectedRow >= 0) {
+                bookingIdStr = String.valueOf(tableBookings.getValueAt(selectedRow, 0)).trim();
+            }
+        }
+
+        String cleanId = bookingIdStr.replaceAll("[^0-9]", "");
+        if (cleanId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a booking from the table to update!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int bookingId = Integer.parseInt(cleanId);
+
+        // 2. Get form values
+        String student = (txtBkStudent.getSelectedItem() != null) ? txtBkStudent.getSelectedItem().toString().trim() : "";
+        String instructor = (cmbBkInstructor.getSelectedItem() != null) ? cmbBkInstructor.getSelectedItem().toString().trim() : "";
+        String vehicle = (cmbBkVehicle.getSelectedItem() != null) ? cmbBkVehicle.getSelectedItem().toString().trim() : "";
+        String dateTime = txtBkDateTime.getText().trim();
+        String status = (cmbBkStatus.getSelectedItem() != null) ? cmbBkStatus.getSelectedItem().toString().trim() : "Pending";
+
+        // 3. Validations
+        if (student.isEmpty() || student.startsWith("--") || student.equalsIgnoreCase("Select Student")) {
+            JOptionPane.showMessageDialog(this, "Please select a student!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtBkStudent.requestFocus();
+            return;
+        }
+        if (instructor.isEmpty() || instructor.startsWith("--") || instructor.equalsIgnoreCase("Select Instructor")) {
+            JOptionPane.showMessageDialog(this, "Please select an assigned instructor!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            cmbBkInstructor.requestFocus();
+            return;
+        }
+        if (vehicle.isEmpty() || vehicle.startsWith("--") || vehicle.equalsIgnoreCase("Select Vehicle")) {
+            JOptionPane.showMessageDialog(this, "Please select a training vehicle!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            cmbBkVehicle.requestFocus();
+            return;
+        }
+        if (dateTime.isEmpty() || dateTime.equalsIgnoreCase("Select Date & Time")) {
+            JOptionPane.showMessageDialog(this, "Please enter Date & Time Slot!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtBkDateTime.requestFocus();
+            return;
+        }
+
+        // 4. Connect to Database & Lookup Foreign Keys
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int studentId = -1;
+        int instructorId = -1;
+        int vehicleId = -1;
+
+        try {
+            // Find student_id
+            String sSql = "SELECT student_id FROM students WHERE full_name LIKE ? LIMIT 1";
+            try (PreparedStatement pst = conn.prepareStatement(sSql)) {
+                pst.setString(1, "%" + student + "%");
+                try (ResultSet rs = pst.executeQuery()) {
+                    if (rs.next()) {
+                        studentId = rs.getInt("student_id");
+                    }
+                }
+            }
+
+            // Find instructor_id
+            String iSql = "SELECT instructor_id FROM instructors WHERE full_name LIKE ? LIMIT 1";
+            try (PreparedStatement pst = conn.prepareStatement(iSql)) {
+                pst.setString(1, "%" + instructor + "%");
+                try (ResultSet rs = pst.executeQuery()) {
+                    if (rs.next()) {
+                        instructorId = rs.getInt("instructor_id");
+                    }
+                }
+            }
+
+            // Find vehicle_id
+            String plate = "";
+            int bStart = vehicle.lastIndexOf('[');
+            int bEnd = vehicle.lastIndexOf(']');
+            if (bStart >= 0 && bEnd > bStart) {
+                plate = vehicle.substring(bStart + 1, bEnd).trim();
+            }
+            if (!plate.isEmpty()) {
+                String vSql = "SELECT vehicle_id FROM vehicles WHERE vehicle_number = ? LIMIT 1";
+                try (PreparedStatement pst = conn.prepareStatement(vSql)) {
+                    pst.setString(1, plate);
+                    try (ResultSet rs = pst.executeQuery()) {
+                        if (rs.next()) {
+                            vehicleId = rs.getInt("vehicle_id");
+                        }
+                    }
+                }
+            }
+            if (vehicleId == -1) {
+                String cleanModel = vehicle.split("\\(")[0].trim();
+                String vSql = "SELECT vehicle_id FROM vehicles WHERE model LIKE ? OR vehicle_number LIKE ? LIMIT 1";
+                try (PreparedStatement pst = conn.prepareStatement(vSql)) {
+                    pst.setString(1, "%" + cleanModel + "%");
+                    pst.setString(2, "%" + cleanModel + "%");
+                    try (ResultSet rs = pst.executeQuery()) {
+                        if (rs.next()) {
+                            vehicleId = rs.getInt("vehicle_id");
+                        }
+                    }
+                }
+            }
+
+            if (studentId == -1 || instructorId == -1 || vehicleId == -1) {
+                JOptionPane.showMessageDialog(this, "Could not resolve Student, Instructor, or Vehicle in database!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 5. Parse Date & Time
+            LocalDate bookingDate = LocalDate.now();
+            LocalTime startTime = LocalTime.of(10, 0, 0);
+            LocalTime endTime = LocalTime.of(11, 0, 0);
+
+            if (dateTime.toLowerCase().contains("tomorrow")) {
+                bookingDate = LocalDate.now().plusDays(1);
+            } else {
+                Matcher dm = Pattern.compile("\\b(\\d{4}-\\d{2}-\\d{2})\\b").matcher(dateTime);
+                if (dm.find()) {
+                    try {
+                        bookingDate = LocalDate.parse(dm.group(1));
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            Matcher tm = Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(am|pm)?", Pattern.CASE_INSENSITIVE).matcher(dateTime);
+            if (tm.find()) {
+                int hour = Integer.parseInt(tm.group(1));
+                int min = Integer.parseInt(tm.group(2));
+                String ampm = tm.group(3);
+                if (ampm != null) {
+                    if (ampm.equalsIgnoreCase("pm") && hour < 12) hour += 12;
+                    else if (ampm.equalsIgnoreCase("am") && hour == 12) hour = 0;
+                }
+                if (hour >= 0 && hour <= 23 && min >= 0 && min <= 59) {
+                    startTime = LocalTime.of(hour, min, 0);
+                    endTime = startTime.plusHours(1);
+                }
+            }
+
+            // 6. Update database record
+            String updateSql = "UPDATE bookings SET student_id = ?, instructor_id = ?, vehicle_id = ?, booking_date = ?, start_time = ?, end_time = ?, status = ? WHERE booking_id = ?";
+            try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+                pst.setInt(1, studentId);
+                pst.setInt(2, instructorId);
+                pst.setInt(3, vehicleId);
+                pst.setDate(4, Date.valueOf(bookingDate));
+                pst.setTime(5, Time.valueOf(startTime));
+                pst.setTime(6, Time.valueOf(endTime));
+                pst.setString(7, status);
+                pst.setInt(8, bookingId);
+
+                int rows = pst.executeUpdate();
+                if (rows > 0) {
+                    JOptionPane.showMessageDialog(this, "Booking slot (#BK-" + bookingId + ") updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    LoadBookingTable();
+                    loadBookingManagementTable();
+                    clearBookingForm();
+                    loadDashboardData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Booking record not found in database to update.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to update booking in database", ex);
+            JOptionPane.showMessageDialog(this, "Database Error while updating booking:\n" + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBkUpdateActionPerformed
+
+    /**
+     * NetBeans Design View Event: btnBkDelete -> Events -> Action -> actionPerformed
+     * Deletes the selected practical booking slot from the database.
+     */
+    private void btnBkDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkDeleteActionPerformed
+        // 1. Get Booking ID
+        String bookingIdStr = txtBkId.getText().trim();
+        int selectedRow = tableBookings.getSelectedRow();
+        if (selectedRow >= 0) {
+            bookingIdStr = String.valueOf(tableBookings.getValueAt(selectedRow, 0)).trim();
+        }
+
+        String cleanId = bookingIdStr.replaceAll("[^0-9]", "");
+        if (cleanId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a booking from the table to delete!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int bookingId = Integer.parseInt(cleanId);
+
+        // 2. Confirm Deletion with User
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to cancel and delete booking #BK-" + String.format("%04d", bookingId) + "?",
+            "Confirm Cancellation",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        // 3. Delete from database table
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String deleteSql = "DELETE FROM bookings WHERE booking_id = ?";
+        try (PreparedStatement pst = conn.prepareStatement(deleteSql)) {
+            pst.setInt(1, bookingId);
+            int rows = pst.executeUpdate();
+            LoadBookingTable();
+            loadBookingManagementTable();
+            clearBookingForm();
+            loadDashboardData();
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this, "Booking (#BK-" + String.format("%04d", bookingId) + ") has been deleted successfully!", "Deleted", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Booking record was already removed from database.", "Notice", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to delete booking from database", ex);
+            JOptionPane.showMessageDialog(this, "Database Error while deleting booking:\n" + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBkDeleteActionPerformed
+
+    /**
+     * NetBeans Design View Event: btnBkClear -> Events -> Action -> actionPerformed
+     */
+    private void btnBkClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkClearActionPerformed
+        clearBookingForm();
+    }//GEN-LAST:event_btnBkClearActionPerformed
+
+    /**
+     * NetBeans Design View Event: btnBkRefresh -> Events -> Action -> actionPerformed
+     */
+    private void btnBkRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkRefreshActionPerformed
+        txtBkSearch.setText("Search bookings...");
+        if (cmbBkFilterStatus.getItemCount() > 0) {
+            cmbBkFilterStatus.setSelectedIndex(0);
+        }
+        LoadBookingTable();
+        loadBookingDropdowns();
+    }//GEN-LAST:event_btnBkRefreshActionPerformed
+
+    /**
+     * Method requested: LoadBookingTable()
+     * Loads booking records from the database into tableBookings (inside scrollBkTable).
+     * If no records in DB, retains demo rows and updates badge counters.
+     */
+    public void LoadBookingTable() {
+        loadBookingTable(null, null);
+    }
+
+    /**
+     * Overload method for lowercase loadBookingTable()
+     */
+    public void loadBookingTable() {
+        loadBookingTable(null, null);
+    }
+
+    /**
+     * Main table loading and search filtering logic
+     */
+    public void loadBookingTable(String keyword, String statusFilter) {
+        DefaultTableModel dtm = (DefaultTableModel) tableBookings.getModel();
+        Connection conn = getConnection();
+        if (conn == null) {
+            updateBookingBadges();
+            return;
+        }
+
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty() && !keyword.equals("Search bookings..."));
+        boolean hasStatus = (statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equalsIgnoreCase("All Statuses"));
+
+        StringBuilder sql = new StringBuilder(
+            "SELECT b.booking_id, "
+            + "COALESCE(s.full_name, 'Unknown Student') AS student_name, "
+            + "COALESCE(i.full_name, 'Unassigned Instructor') AS instructor_name, "
+            + "COALESCE(v.model, 'Vehicle') AS veh_model, "
+            + "COALESCE(v.transmission, 'Auto') AS veh_trans, "
+            + "b.booking_date, b.start_time, b.end_time, b.status "
+            + "FROM bookings b "
+            + "LEFT JOIN students s ON b.student_id = s.student_id "
+            + "LEFT JOIN instructors i ON b.instructor_id = i.instructor_id "
+            + "LEFT JOIN vehicles v ON b.vehicle_id = v.vehicle_id "
+            + "WHERE 1=1 "
+        );
+
+        if (hasKeyword) {
+            sql.append("AND (CAST(b.booking_id AS CHAR) LIKE ? OR s.full_name LIKE ? OR i.full_name LIKE ? OR v.model LIKE ?) ");
+        }
+        if (hasStatus) {
+            sql.append("AND b.status = ? ");
+        }
+        sql.append("ORDER BY b.booking_id DESC");
+
+        try (PreparedStatement pst = conn.prepareStatement(sql.toString())) {
+            int pIndex = 1;
+            if (hasKeyword) {
+                String pattern = "%" + keyword.trim() + "%";
+                pst.setString(pIndex++, pattern);
+                pst.setString(pIndex++, pattern);
+                pst.setString(pIndex++, pattern);
+                pst.setString(pIndex++, pattern);
+            }
+            if (hasStatus) {
+                pst.setString(pIndex++, statusFilter.trim());
+            }
+
+            try (ResultSet rs = pst.executeQuery()) {
+                dtm.setRowCount(0);
+                while (rs.next()) {
+                    Vector<Object> row = new Vector<>();
+                    int bId = rs.getInt("booking_id");
+                    row.add(String.format("#BK-%04d", bId));
+                    row.add(rs.getString("student_name"));
+                    row.add(rs.getString("instructor_name"));
+
+                    String model = rs.getString("veh_model");
+                    String trans = rs.getString("veh_trans");
+                    row.add(model + (trans != null && !trans.isEmpty() ? " (" + trans + ")" : ""));
+
+                    row.add("Practical Driving Lesson");
+
+                    String date = rs.getString("booking_date");
+                    String time = rs.getString("start_time");
+                    String dt = (date != null ? date : "") + (time != null ? ", " + time : "");
+                    row.add(dt.isEmpty() ? "Scheduled Slot" : dt);
+
+                    String st = rs.getString("status");
+                    row.add(st != null ? st : "Booked");
+
+                    dtm.addRow(row);
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load bookings from database", ex);
+        }
+
+        // Update badge counts and table footer text
+        updateBookingBadges();
+    }
+
+    /**
+     * Populates form fields with the selected table row data
+     */
+    public void loadSelectedBookingToForm() {
+        int row = tableBookings.getSelectedRow();
+        if (row >= 0) {
+            String bookingId = String.valueOf(tableBookings.getValueAt(row, 0));
+            txtBkId.setText(bookingId);
+
+            String student = String.valueOf(tableBookings.getValueAt(row, 1));
+            for (int i = 0; i < txtBkStudent.getItemCount(); i++) {
+                String item = txtBkStudent.getItemAt(i);
+                if (item != null && (item.equalsIgnoreCase(student) || item.contains(student) || student.contains(item))) {
+                    txtBkStudent.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String instructor = String.valueOf(tableBookings.getValueAt(row, 2));
+            for (int i = 0; i < cmbBkInstructor.getItemCount(); i++) {
+                String item = cmbBkInstructor.getItemAt(i);
+                if (item != null && (item.equalsIgnoreCase(instructor) || item.contains(instructor) || instructor.contains(item))) {
+                    cmbBkInstructor.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String vehicle = String.valueOf(tableBookings.getValueAt(row, 3));
+            for (int i = 0; i < cmbBkVehicle.getItemCount(); i++) {
+                String item = cmbBkVehicle.getItemAt(i);
+                if (item != null && (item.equalsIgnoreCase(vehicle) || item.contains(vehicle) || vehicle.contains(item))) {
+                    cmbBkVehicle.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String lessonType = String.valueOf(tableBookings.getValueAt(row, 4));
+            for (int i = 0; i < cmbBkLessonType.getItemCount(); i++) {
+                String item = cmbBkLessonType.getItemAt(i);
+                if (item != null && (item.equalsIgnoreCase(lessonType) || item.contains(lessonType) || lessonType.contains(item))) {
+                    cmbBkLessonType.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String dateTime = String.valueOf(tableBookings.getValueAt(row, 5));
+            txtBkDateTime.setText(dateTime);
+
+            String status = String.valueOf(tableBookings.getValueAt(row, 6));
+            for (int i = 0; i < cmbBkStatus.getItemCount(); i++) {
+                String item = cmbBkStatus.getItemAt(i);
+                if (item != null && item.equalsIgnoreCase(status)) {
+                    cmbBkStatus.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            // Switch buttons to Edit / Update mode
+            btnBkAdd.setVisible(false);
+            btnBkUpdate.setVisible(true);
+            btnBkDelete.setVisible(true);
+            btnBkClear.setVisible(true);
+        }
+    }
+
+    /**
+     * Updates badge count indicators on top of the Bookings panel
+     */
+    public void updateBookingBadges() {
+        DefaultTableModel dtm = (DefaultTableModel) tableBookings.getModel();
+        int total = dtm.getRowCount();
+        lblBkTableCount.setText("Showing " + total + " scheduled bookings | Click a row to view or edit reservation");
+        lblBkBadgeTotalCount.setText(String.valueOf(total));
+
+        int confirmed = 0;
+        int pending = 0;
+        for (int i = 0; i < total; i++) {
+            Object st = dtm.getValueAt(i, 6);
+            if (st != null) {
+                String s = st.toString().trim();
+                if (s.equalsIgnoreCase("Confirmed")) {
+                    confirmed++;
+                } else if (s.equalsIgnoreCase("Pending") || s.equalsIgnoreCase("Booked") || s.equalsIgnoreCase("In Progress")) {
+                    pending++;
+                }
+            }
+        }
+        lblBkBadgeConfirmedCount.setText(String.valueOf(confirmed));
+        lblBkBadgePendingCount.setText(String.valueOf(pending));
+        lblCountBookings.setText(String.valueOf(total));
+    }
+
+    /**
+     * Clears booking input fields and resets buttons to Add mode
+     */
+    public void clearBookingForm() {
+        int nextId = generateUniqueBookingId();
+        txtBkId.setText(String.format("BK-%04d", nextId));
+        if (txtBkStudent.getItemCount() > 0) {
+            txtBkStudent.setSelectedIndex(0);
+        }
+        if (cmbBkInstructor.getItemCount() > 0) {
+            cmbBkInstructor.setSelectedIndex(0);
+        }
+        if (cmbBkVehicle.getItemCount() > 0) {
+            cmbBkVehicle.setSelectedIndex(0);
+        }
+        if (cmbBkLessonType.getItemCount() > 0) {
+            cmbBkLessonType.setSelectedIndex(0);
+        }
+        txtBkDateTime.setText("");
+        if (cmbBkStatus.getItemCount() > 0) {
+            cmbBkStatus.setSelectedIndex(0);
+        }
+        if (cmbBkPayment.getItemCount() > 0) {
+            cmbBkPayment.setSelectedIndex(0);
+        }
+        tableBookings.clearSelection();
+        btnBkAdd.setVisible(true);
+        btnBkUpdate.setVisible(false);
+        btnBkDelete.setVisible(false);
+        btnBkClear.setVisible(false);
+    }
+
+    // =========================================================================
+    // BOOKINGS MANAGEMENT (cardBookingManagement) CONTROLLERS & LOGIC
+    // Accessible from NetBeans GUI Builder Design View
+    // =========================================================================
+
+    /**
+     * NetBeans Design View Event: tableBookingManagement -> Events -> Mouse -> mouseClicked
+     * Populates form fields with the selected table row data.
+     */
+    private void tableBookingManagementMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableBookingManagementMouseClicked
+        loadSelectedManagementBookingToForm();
+    }//GEN-LAST:event_tableBookingManagementMouseClicked
+
+    /**
+     * NetBeans Design View Event: btnBmConfirm -> Events -> Action -> actionPerformed
+     * Confirms the selected booking slot (sets status to 'Confirmed').
+     */
+    private void btnBmConfirmActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBmConfirmActionPerformed
+        String bookingIdStr = txtBmId.getText().trim();
+        int selectedRow = tableBookingManagement.getSelectedRow();
+        if ((bookingIdStr.isEmpty() || bookingIdStr.equalsIgnoreCase("BK-2041")) && selectedRow >= 0) {
+            bookingIdStr = String.valueOf(tableBookingManagement.getValueAt(selectedRow, 0)).trim();
+        }
+
+        String cleanId = bookingIdStr.replaceAll("[^0-9]", "");
+        if (cleanId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a booking slot from the table to confirm!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int bookingId = Integer.parseInt(cleanId);
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String updateSql = "UPDATE bookings SET status = 'Confirmed' WHERE booking_id = ?";
+        try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+            pst.setInt(1, bookingId);
+            int rows = pst.executeUpdate();
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this, "Booking slot (#BK-" + String.format("%04d", bookingId) + ") has been successfully CONFIRMED!", "Slot Confirmed", JOptionPane.INFORMATION_MESSAGE);
+                loadBookingManagementTable();
+                LoadBookingTable();
+                clearBookingManagementForm();
+                loadDashboardData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Booking record not found in database to confirm.", "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to confirm booking in database", ex);
+            JOptionPane.showMessageDialog(this, "Database Error while confirming booking:\n" + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBmConfirmActionPerformed
+
+    /**
+     * NetBeans Design View Event: btnBmReschedule -> Events -> Action -> actionPerformed
+     * Reassigns instructor, vehicle, date, and time slot for the selected booking.
+     */
+    private void btnBmRescheduleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBmRescheduleActionPerformed
+        String bookingIdStr = txtBmId.getText().trim();
+        int selectedRow = tableBookingManagement.getSelectedRow();
+        if ((bookingIdStr.isEmpty() || bookingIdStr.equalsIgnoreCase("BK-2041")) && selectedRow >= 0) {
+            bookingIdStr = String.valueOf(tableBookingManagement.getValueAt(selectedRow, 0)).trim();
+        }
+
+        String cleanId = bookingIdStr.replaceAll("[^0-9]", "");
+        if (cleanId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a booking slot from the table to reassign or reschedule!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int bookingId = Integer.parseInt(cleanId);
+
+        String instructor = (cmbBmInstructor.getSelectedItem() != null) ? cmbBmInstructor.getSelectedItem().toString().trim() : "";
+        String vehicle = (cmbBmVehicle.getSelectedItem() != null) ? cmbBmVehicle.getSelectedItem().toString().trim() : "";
+        String dateStr = txtBmDate.getText().trim();
+        String slotStr = (cmbBmTimeSlot.getSelectedItem() != null) ? cmbBmTimeSlot.getSelectedItem().toString().trim() : "";
+        String status = (cmbBmStatus.getSelectedItem() != null) ? cmbBmStatus.getSelectedItem().toString().trim() : "Rescheduled";
+
+        if (instructor.isEmpty() || instructor.startsWith("--")) {
+            JOptionPane.showMessageDialog(this, "Please select an assigned instructor!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            cmbBmInstructor.requestFocus();
+            return;
+        }
+        if (vehicle.isEmpty() || vehicle.startsWith("--")) {
+            JOptionPane.showMessageDialog(this, "Please select an assigned vehicle!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            cmbBmVehicle.requestFocus();
+            return;
+        }
+        if (dateStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter session date (YYYY-MM-DD)!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            txtBmDate.requestFocus();
+            return;
+        }
+        if (slotStr.isEmpty() || slotStr.startsWith("--")) {
+            JOptionPane.showMessageDialog(this, "Please select a time slot!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            cmbBmTimeSlot.requestFocus();
+            return;
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int instructorId = -1;
+        int vehicleId = -1;
+
+        try {
+            // Find instructor_id
+            String iSql = "SELECT instructor_id FROM instructors WHERE full_name LIKE ? LIMIT 1";
+            try (PreparedStatement pst = conn.prepareStatement(iSql)) {
+                pst.setString(1, "%" + instructor + "%");
+                try (ResultSet rs = pst.executeQuery()) {
+                    if (rs.next()) {
+                        instructorId = rs.getInt("instructor_id");
+                    }
+                }
+            }
+
+            // Find vehicle_id
+            String plate = "";
+            int bStart = vehicle.lastIndexOf('[');
+            int bEnd = vehicle.lastIndexOf(']');
+            if (bStart >= 0 && bEnd > bStart) {
+                plate = vehicle.substring(bStart + 1, bEnd).trim();
+            }
+            if (!plate.isEmpty()) {
+                String vSql = "SELECT vehicle_id FROM vehicles WHERE vehicle_number = ? LIMIT 1";
+                try (PreparedStatement pst = conn.prepareStatement(vSql)) {
+                    pst.setString(1, plate);
+                    try (ResultSet rs = pst.executeQuery()) {
+                        if (rs.next()) {
+                            vehicleId = rs.getInt("vehicle_id");
+                        }
+                    }
+                }
+            }
+            if (vehicleId == -1) {
+                String cleanModel = vehicle.split("\\(")[0].trim();
+                String vSql = "SELECT vehicle_id FROM vehicles WHERE model LIKE ? OR vehicle_number LIKE ? LIMIT 1";
+                try (PreparedStatement pst = conn.prepareStatement(vSql)) {
+                    pst.setString(1, "%" + cleanModel + "%");
+                    pst.setString(2, "%" + cleanModel + "%");
+                    try (ResultSet rs = pst.executeQuery()) {
+                        if (rs.next()) {
+                            vehicleId = rs.getInt("vehicle_id");
+                        }
+                    }
+                }
+            }
+
+            if (instructorId == -1) {
+                JOptionPane.showMessageDialog(this, "Selected instructor was not found in the database!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (vehicleId == -1) {
+                JOptionPane.showMessageDialog(this, "Selected vehicle was not found in the database!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Parse Date
+            LocalDate bookingDate = LocalDate.now();
+            try {
+                bookingDate = LocalDate.parse(dateStr);
+            } catch (Exception ex) {
+                Matcher dm = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})").matcher(dateStr);
+                if (dm.find()) {
+                    try {
+                        bookingDate = LocalDate.parse(dm.group(1));
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            // Parse Time Slot
+            LocalTime startTime = LocalTime.of(9, 0, 0);
+            LocalTime endTime = LocalTime.of(10, 0, 0);
+            Pattern timePat = Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(AM|PM)?", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = timePat.matcher(slotStr);
+            if (matcher.find()) {
+                int h1 = Integer.parseInt(matcher.group(1));
+                int m1 = Integer.parseInt(matcher.group(2));
+                String ap1 = matcher.group(3);
+                if (ap1 != null) {
+                    if (ap1.equalsIgnoreCase("PM") && h1 < 12) h1 += 12;
+                    else if (ap1.equalsIgnoreCase("AM") && h1 == 12) h1 = 0;
+                }
+                startTime = LocalTime.of(h1, m1, 0);
+                endTime = startTime.plusHours(1);
+
+                if (matcher.find()) {
+                    int h2 = Integer.parseInt(matcher.group(1));
+                    int m2 = Integer.parseInt(matcher.group(2));
+                    String ap2 = matcher.group(3);
+                    if (ap2 != null) {
+                        if (ap2.equalsIgnoreCase("PM") && h2 < 12) h2 += 12;
+                        else if (ap2.equalsIgnoreCase("AM") && h2 == 12) h2 = 0;
+                    }
+                    endTime = LocalTime.of(h2, m2, 0);
+                }
+            }
+
+            // If user did not change status from Pending, set to Rescheduled
+            if (status.equalsIgnoreCase("Pending")) {
+                status = "Rescheduled";
+            }
+
+            String updateSql = "UPDATE bookings SET instructor_id = ?, vehicle_id = ?, booking_date = ?, start_time = ?, end_time = ?, status = ? WHERE booking_id = ?";
+            try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+                pst.setInt(1, instructorId);
+                pst.setInt(2, vehicleId);
+                pst.setDate(3, Date.valueOf(bookingDate));
+                pst.setTime(4, Time.valueOf(startTime));
+                pst.setTime(5, Time.valueOf(endTime));
+                pst.setString(6, status);
+                pst.setInt(7, bookingId);
+
+                int rows = pst.executeUpdate();
+                if (rows > 0) {
+                    JOptionPane.showMessageDialog(this, "Booking slot (#BK-" + String.format("%04d", bookingId) + ") reassigned & updated successfully!", "Slot Updated", JOptionPane.INFORMATION_MESSAGE);
+                    loadBookingManagementTable();
+                    LoadBookingTable();
+                    clearBookingManagementForm();
+                    loadDashboardData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Booking record not found in database to update.", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to reschedule booking in database", ex);
+            JOptionPane.showMessageDialog(this, "Database Error while rescheduling booking:\n" + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBmRescheduleActionPerformed
+
+    /**
+     * NetBeans Design View Event: btnBmCancel -> Events -> Action -> actionPerformed
+     * Cancels the selected booking slot (sets status to 'Cancelled').
+     */
+    private void btnBmCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBmCancelActionPerformed
+        String bookingIdStr = txtBmId.getText().trim();
+        int selectedRow = tableBookingManagement.getSelectedRow();
+        if ((bookingIdStr.isEmpty() || bookingIdStr.equalsIgnoreCase("BK-2041")) && selectedRow >= 0) {
+            bookingIdStr = String.valueOf(tableBookingManagement.getValueAt(selectedRow, 0)).trim();
+        }
+
+        String cleanId = bookingIdStr.replaceAll("[^0-9]", "");
+        if (cleanId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please select a booking from the table to cancel!", "Selection Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int bookingId = Integer.parseInt(cleanId);
+
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to cancel booking slot #BK-" + String.format("%04d", bookingId) + "?",
+            "Confirm Slot Cancellation",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        Connection conn = getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Database connection not available!", "Database Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String updateSql = "UPDATE bookings SET status = 'Cancelled' WHERE booking_id = ?";
+        try (PreparedStatement pst = conn.prepareStatement(updateSql)) {
+            pst.setInt(1, bookingId);
+            int rows = pst.executeUpdate();
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this, "Booking slot (#BK-" + String.format("%04d", bookingId) + ") has been CANCELLED.", "Slot Cancelled", JOptionPane.INFORMATION_MESSAGE);
+                loadBookingManagementTable();
+                LoadBookingTable();
+                clearBookingManagementForm();
+                loadDashboardData();
+            } else {
+                JOptionPane.showMessageDialog(this, "Booking record not found in database.", "Warning", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to cancel booking in database", ex);
+            JOptionPane.showMessageDialog(this, "Database Error while cancelling booking:\n" + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnBmCancelActionPerformed
+
+    /**
+     * NetBeans Design View Event: btnBmClear -> Events -> Action -> actionPerformed
+     */
+    private void btnBmClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBmClearActionPerformed
+        clearBookingManagementForm();
+    }//GEN-LAST:event_btnBmClearActionPerformed
+
+    /**
+     * NetBeans Design View Event: btnBmRefresh -> Events -> Action -> actionPerformed
+     */
+    private void btnBmRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBmRefreshActionPerformed
+        txtBmSearch.setText("");
+        if (cmbBmFilterStatus.getItemCount() > 0) {
+            cmbBmFilterStatus.setSelectedIndex(0);
+        }
+        loadBookingManagementDropdowns();
+        loadBookingManagementTable();
+        clearBookingManagementForm();
+    }//GEN-LAST:event_btnBmRefreshActionPerformed
+
+    /**
+     * Loads instructor, vehicle, timeslot, and status dropdowns for Bookings Management
+     */
+    public void loadBookingManagementDropdowns() {
+        Connection conn = getConnection();
+        if (conn == null) {
+            return;
+        }
+
+        // 1. Instructors
+        cmbBmInstructor.removeAllItems();
+        cmbBmInstructor.addItem("-- Select Instructor --");
+        String instSql = "SELECT full_name FROM instructors ORDER BY full_name ASC";
+        try (PreparedStatement pst = conn.prepareStatement(instSql);
+             ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                String name = rs.getString("full_name");
+                if (name != null && !name.trim().isEmpty()) {
+                    cmbBmInstructor.addItem(name.trim());
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load instructors for booking management", ex);
+        }
+
+        // 2. Vehicles
+        cmbBmVehicle.removeAllItems();
+        cmbBmVehicle.addItem("-- Select Vehicle --");
+        String vehSql = "SELECT model, transmission, vehicle_number FROM vehicles ORDER BY model ASC";
+        try (PreparedStatement pst = conn.prepareStatement(vehSql);
+             ResultSet rs = pst.executeQuery()) {
+            while (rs.next()) {
+                String model = rs.getString("model");
+                String trans = rs.getString("transmission");
+                String plate = rs.getString("vehicle_number");
+
+                String displayVeh = (model != null && !model.trim().isEmpty()) ? model.trim() : "Vehicle";
+                if (trans != null && !trans.trim().isEmpty()) {
+                    displayVeh += " (" + trans.trim() + ")";
+                }
+                if (plate != null && !plate.trim().isEmpty()) {
+                    displayVeh += " [" + plate.trim() + "]";
+                }
+                cmbBmVehicle.addItem(displayVeh);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load vehicles for booking management", ex);
+        }
+
+        // 3. Time Slots
+        if (cmbBmTimeSlot.getItemCount() == 0) {
+            cmbBmTimeSlot.setModel(new DefaultComboBoxModel<>(new String[]{
+                "-- Select Time Slot --",
+                "08:00 AM - 09:00 AM",
+                "09:00 AM - 10:00 AM",
+                "10:00 AM - 11:00 AM",
+                "11:00 AM - 12:00 PM",
+                "01:00 PM - 02:00 PM",
+                "02:00 PM - 03:00 PM",
+                "03:00 PM - 04:00 PM",
+                "04:00 PM - 05:00 PM",
+                "05:00 PM - 06:00 PM"
+            }));
+        }
+
+        // 4. Session Status
+        if (cmbBmStatus.getItemCount() == 0) {
+            cmbBmStatus.setModel(new DefaultComboBoxModel<>(new String[]{
+                "Pending", "Confirmed", "In Progress", "Completed", "Cancelled", "Rescheduled"
+            }));
+        }
+
+        // 5. Filter Status
+        if (cmbBmFilterStatus.getItemCount() == 0) {
+            cmbBmFilterStatus.setModel(new DefaultComboBoxModel<>(new String[]{
+                "All Statuses", "Pending", "Confirmed", "In Progress", "Completed", "Cancelled", "Rescheduled"
+            }));
+        }
+    }
+
+    /**
+     * Overload to reload Bookings Management table with no filters
+     */
+    public void loadBookingManagementTable() {
+        loadBookingManagementTable(null, null);
+    }
+
+    /**
+     * Loads live booking management data from database with optional keyword and status filters
+     */
+    public void loadBookingManagementTable(String keyword, String statusFilter) {
+        DefaultTableModel dtm = (DefaultTableModel) tableBookingManagement.getModel();
+        Connection conn = getConnection();
+        if (conn == null) {
+            updateBookingManagementBadges();
+            return;
+        }
+
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty() && !keyword.equalsIgnoreCase("Search by ref, student, vehicle...") && !keyword.equalsIgnoreCase("Search bookings..."));
+        boolean hasStatus = (statusFilter != null && !statusFilter.trim().isEmpty() && !statusFilter.equalsIgnoreCase("All Statuses"));
+
+        StringBuilder sql = new StringBuilder(
+            "SELECT b.booking_id, "
+            + "COALESCE(s.full_name, 'Unknown Student') AS student_name, "
+            + "COALESCE(i.full_name, 'Unassigned Instructor') AS instructor_name, "
+            + "COALESCE(v.model, 'Vehicle') AS veh_model, "
+            + "COALESCE(v.transmission, 'Auto') AS veh_trans, "
+            + "COALESCE(v.vehicle_number, '') AS veh_plate, "
+            + "b.booking_date, b.start_time, b.end_time, b.status "
+            + "FROM bookings b "
+            + "LEFT JOIN students s ON b.student_id = s.student_id "
+            + "LEFT JOIN instructors i ON b.instructor_id = i.instructor_id "
+            + "LEFT JOIN vehicles v ON b.vehicle_id = v.vehicle_id "
+            + "WHERE 1=1 "
+        );
+
+        if (hasKeyword) {
+            sql.append("AND (CAST(b.booking_id AS CHAR) LIKE ? OR s.full_name LIKE ? OR i.full_name LIKE ? OR v.model LIKE ? OR v.vehicle_number LIKE ?) ");
+        }
+        if (hasStatus) {
+            sql.append("AND b.status = ? ");
+        }
+        sql.append("ORDER BY b.booking_id DESC");
+
+        try (PreparedStatement pst = conn.prepareStatement(sql.toString())) {
+            int pIndex = 1;
+            if (hasKeyword) {
+                String pattern = "%" + keyword.trim() + "%";
+                pst.setString(pIndex++, pattern);
+                pst.setString(pIndex++, pattern);
+                pst.setString(pIndex++, pattern);
+                pst.setString(pIndex++, pattern);
+                pst.setString(pIndex++, pattern);
+            }
+            if (hasStatus) {
+                pst.setString(pIndex++, statusFilter.trim());
+            }
+
+            try (ResultSet rs = pst.executeQuery()) {
+                dtm.setRowCount(0);
+                while (rs.next()) {
+                    Vector<Object> row = new Vector<>();
+                    int bId = rs.getInt("booking_id");
+                    row.add(String.format("#BK-%04d", bId));
+                    row.add(rs.getString("student_name"));
+                    row.add(rs.getString("instructor_name"));
+
+                    String model = rs.getString("veh_model");
+                    String trans = rs.getString("veh_trans");
+                    String plate = rs.getString("veh_plate");
+                    String vehDisplay = (model != null && !model.isEmpty()) ? model : "Vehicle";
+                    if (trans != null && !trans.isEmpty()) {
+                        vehDisplay += " (" + trans + ")";
+                    }
+                    if (plate != null && !plate.isEmpty()) {
+                        vehDisplay += " [" + plate + "]";
+                    }
+                    row.add(vehDisplay);
+
+                    String date = rs.getString("booking_date");
+                    row.add(date != null ? date : "");
+
+                    String startTime = rs.getString("start_time");
+                    String endTime = rs.getString("end_time");
+                    row.add(formatTimeSlot(startTime, endTime));
+
+                    String st = rs.getString("status");
+                    row.add(st != null ? st : "Pending");
+
+                    dtm.addRow(row);
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load bookings management table from database", ex);
+        }
+
+        int count = dtm.getRowCount();
+        lblBmTableCount.setText("Showing " + count + " booking" + (count == 1 ? "" : "s"));
+        updateBookingManagementBadges();
+    }
+
+    /**
+     * Formats 24-hr time strings (HH:mm:ss) into friendly 12-hr slot strings (hh:mm a - hh:mm a)
+     */
+    private String formatTimeSlot(String startTime, String endTime) {
+        if (startTime == null || startTime.trim().isEmpty()) {
+            return "Scheduled Slot";
+        }
+        try {
+            String s = startTime.trim();
+            if (s.length() >= 5) {
+                int h = Integer.parseInt(s.substring(0, 2));
+                int m = Integer.parseInt(s.substring(3, 5));
+                String ampm = (h >= 12) ? "PM" : "AM";
+                int h12 = (h % 12 == 0) ? 12 : h % 12;
+                String formatted = String.format("%02d:%02d %s", h12, m, ampm);
+
+                if (endTime != null && endTime.trim().length() >= 5) {
+                    String e = endTime.trim();
+                    int eh = Integer.parseInt(e.substring(0, 2));
+                    int em = Integer.parseInt(e.substring(3, 5));
+                    String eampm = (eh >= 12) ? "PM" : "AM";
+                    int eh12 = (eh % 12 == 0) ? 12 : eh % 12;
+                    formatted += String.format(" - %02d:%02d %s", eh12, em, eampm);
+                }
+                return formatted;
+            }
+        } catch (Exception ignored) {}
+        return startTime + (endTime != null ? " - " + endTime : "");
+    }
+
+    /**
+     * Populates form fields with the selected row data in tableBookingManagement
+     */
+    public void loadSelectedManagementBookingToForm() {
+        int row = tableBookingManagement.getSelectedRow();
+        if (row >= 0) {
+            String bookingRef = String.valueOf(tableBookingManagement.getValueAt(row, 0));
+            txtBmId.setText(bookingRef);
+
+            String student = String.valueOf(tableBookingManagement.getValueAt(row, 1));
+            txtBmStudent.setText(student);
+
+            String instructor = String.valueOf(tableBookingManagement.getValueAt(row, 2));
+            for (int i = 0; i < cmbBmInstructor.getItemCount(); i++) {
+                String item = cmbBmInstructor.getItemAt(i);
+                if (item != null && (item.equalsIgnoreCase(instructor) || item.contains(instructor) || instructor.contains(item))) {
+                    cmbBmInstructor.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String vehicle = String.valueOf(tableBookingManagement.getValueAt(row, 3));
+            for (int i = 0; i < cmbBmVehicle.getItemCount(); i++) {
+                String item = cmbBmVehicle.getItemAt(i);
+                if (item != null && (item.equalsIgnoreCase(vehicle) || item.contains(vehicle) || vehicle.contains(item))) {
+                    cmbBmVehicle.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            String date = String.valueOf(tableBookingManagement.getValueAt(row, 4));
+            txtBmDate.setText(date);
+
+            String timeSlot = String.valueOf(tableBookingManagement.getValueAt(row, 5));
+            boolean matchedSlot = false;
+            for (int i = 0; i < cmbBmTimeSlot.getItemCount(); i++) {
+                String item = cmbBmTimeSlot.getItemAt(i);
+                if (item != null && (item.equalsIgnoreCase(timeSlot) || item.contains(timeSlot) || timeSlot.contains(item))) {
+                    cmbBmTimeSlot.setSelectedIndex(i);
+                    matchedSlot = true;
+                    break;
+                }
+            }
+            if (!matchedSlot && timeSlot != null && timeSlot.length() >= 5) {
+                String prefix = timeSlot.substring(0, 5);
+                for (int i = 0; i < cmbBmTimeSlot.getItemCount(); i++) {
+                    String item = cmbBmTimeSlot.getItemAt(i);
+                    if (item != null && item.contains(prefix)) {
+                        cmbBmTimeSlot.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
+
+            String status = String.valueOf(tableBookingManagement.getValueAt(row, 6));
+            for (int i = 0; i < cmbBmStatus.getItemCount(); i++) {
+                String item = cmbBmStatus.getItemAt(i);
+                if (item != null && item.equalsIgnoreCase(status)) {
+                    cmbBmStatus.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            txtBmRemarks.setText("Assigned training session for " + student);
+
+            // Show action buttons when a booking is selected
+            btnBmConfirm.setVisible(true);
+            btnBmReschedule.setVisible(true);
+            btnBmCancel.setVisible(true);
+            btnBmClear.setVisible(true);
+        }
+    }
+
+    /**
+     * Clears all fields in the Booking Management form
+     */
+    public void clearBookingManagementForm() {
+        txtBmId.setText("");
+        txtBmStudent.setText("");
+        if (cmbBmInstructor.getItemCount() > 0) {
+            cmbBmInstructor.setSelectedIndex(0);
+        }
+        if (cmbBmVehicle.getItemCount() > 0) {
+            cmbBmVehicle.setSelectedIndex(0);
+        }
+        txtBmDate.setText(LocalDate.now().toString());
+        if (cmbBmTimeSlot.getItemCount() > 0) {
+            cmbBmTimeSlot.setSelectedIndex(0);
+        }
+        if (cmbBmStatus.getItemCount() > 0) {
+            cmbBmStatus.setSelectedItem("Pending");
+        }
+        txtBmRemarks.setText("");
+        tableBookingManagement.clearSelection();
+
+        // Hide action buttons when no booking is selected
+        btnBmConfirm.setVisible(false);
+        btnBmReschedule.setVisible(false);
+        btnBmCancel.setVisible(false);
+        btnBmClear.setVisible(false);
+    }
+
+    /**
+     * Updates badge counters on the Bookings Management header
+     */
+    public void updateBookingManagementBadges() {
+        Connection conn = getConnection();
+        if (conn == null) {
+            return;
+        }
+
+        try {
+            // Total Bookings
+            String sqlTotal = "SELECT COUNT(*) AS total FROM bookings";
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sqlTotal)) {
+                if (rs.next()) {
+                    lblBmBadgeTotalCount.setText(String.valueOf(rs.getInt("total")));
+                }
+            }
+
+            // Today's Bookings
+            String sqlToday = "SELECT COUNT(*) AS today FROM bookings WHERE booking_date = CURRENT_DATE()";
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sqlToday)) {
+                if (rs.next()) {
+                    lblBmBadgeTodayCount.setText(String.valueOf(rs.getInt("today")));
+                }
+            }
+
+            // Pending Bookings
+            String sqlPending = "SELECT COUNT(*) AS pending FROM bookings WHERE status = 'Pending'";
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sqlPending)) {
+                if (rs.next()) {
+                    lblBmBadgePendingCount.setText(String.valueOf(rs.getInt("pending")));
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to update booking management badge counters", ex);
+        }
+    }
+
+    /**
+     * Initializes listeners and default data for Bookings Management
+     */
+    private void initBookingManagementComponents() {
+        loadBookingManagementDropdowns();
+
+        // Search textfield action
+        txtBmSearch.addActionListener(e -> {
+            String kw = txtBmSearch.getText().trim();
+            String st = (String) cmbBmFilterStatus.getSelectedItem();
+            loadBookingManagementTable(kw, st);
+        });
+
+        // Status filter combo action
+        cmbBmFilterStatus.addActionListener(e -> {
+            String kw = txtBmSearch.getText().trim();
+            String st = (String) cmbBmFilterStatus.getSelectedItem();
+            loadBookingManagementTable(kw, st);
+        });
+
+        loadBookingManagementTable();
+        clearBookingManagementForm();
+    }
+
+    /**
+     * Loads live database statistics and recent practical bookings into the Dashboard
+     */
+    public void loadDashboardData() {
+        Connection conn = getConnection();
+        if (conn == null) {
+            return;
+        }
+
+        // 1. Dynamic System Date on Top Right
+        try {
+            lblDate.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy")));
+        } catch (Exception ignored) {}
+
+        // 2. Total Students & Active Learners
+        try {
+            String studentSql = "SELECT COUNT(*) AS total, SUM(CASE WHEN TRIM(status) = 'Active Learner' THEN 1 ELSE 0 END) AS active FROM students";
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(studentSql)) {
+                if (rs.next()) {
+                    int total = rs.getInt("total");
+                    int active = rs.getInt("active");
+                    lblCountStudents.setText(String.valueOf(total));
+                    lblTrendStudents.setText(active + " active learner" + (active == 1 ? "" : "s"));
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load dashboard student stats", ex);
+        }
+
+        // 3. Today's Bookings & Status Summary
+        try {
+            String bookingSql = "SELECT COUNT(*) AS total, "
+                              + "SUM(CASE WHEN booking_date = CURRENT_DATE() THEN 1 ELSE 0 END) AS today, "
+                              + "SUM(CASE WHEN TRIM(status) = 'Pending' THEN 1 ELSE 0 END) AS pending, "
+                              + "SUM(CASE WHEN TRIM(status) = 'In Progress' THEN 1 ELSE 0 END) AS in_progress "
+                              + "FROM bookings";
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(bookingSql)) {
+                if (rs.next()) {
+                    int today = rs.getInt("today");
+                    int pending = rs.getInt("pending");
+                    int inProg = rs.getInt("in_progress");
+                    lblCountBookings.setText(String.valueOf(today));
+                    if (inProg > 0) {
+                        lblTrendBookings.setText(inProg + " in progress");
+                    } else if (pending > 0) {
+                        lblTrendBookings.setText(pending + " pending confirmation");
+                    } else if (today > 0) {
+                        lblTrendBookings.setText(today + " scheduled today");
+                    } else {
+                        lblTrendBookings.setText("0 scheduled today");
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load dashboard booking stats", ex);
+        }
+
+        // 4. Instructors Total & Active on Duty
+        try {
+            String instSql = "SELECT COUNT(*) AS total, "
+                           + "SUM(CASE WHEN TRIM(status) = 'Available' OR TRIM(status) = 'On Duty' THEN 1 ELSE 0 END) AS active "
+                           + "FROM instructors";
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(instSql)) {
+                if (rs.next()) {
+                    int total = rs.getInt("total");
+                    int active = rs.getInt("active");
+                    lblCountInstructors.setText(String.valueOf(total));
+                    if (total == 0) {
+                        lblTrendInstructors.setText("0 active on duty");
+                    } else if (active == total) {
+                        lblTrendInstructors.setText("All active on duty");
+                    } else {
+                        lblTrendInstructors.setText(active + " of " + total + " on duty");
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load dashboard instructor stats", ex);
+        }
+
+        // 5. Vehicles Total & Ready
+        try {
+            String vehSql = "SELECT COUNT(*) AS total, "
+                          + "SUM(CASE WHEN TRIM(status) = 'Available' THEN 1 ELSE 0 END) AS ready, "
+                          + "SUM(CASE WHEN TRIM(status) = 'Under Maintenance' THEN 1 ELSE 0 END) AS service "
+                          + "FROM vehicles";
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(vehSql)) {
+                if (rs.next()) {
+                    int total = rs.getInt("total");
+                    int ready = rs.getInt("ready");
+                    int service = rs.getInt("service");
+                    lblCountVehicles.setText(String.valueOf(total));
+                    if (total == 0) {
+                        lblTrendVehicles.setText("0 registered");
+                    } else {
+                        lblTrendVehicles.setText(ready + " ready, " + service + " service");
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load dashboard vehicle stats", ex);
+        }
+
+        // 6. Recent Practical Bookings Table (Latest 10)
+        DefaultTableModel dtm = (DefaultTableModel) tableRecentBookings.getModel();
+        dtm.setRowCount(0);
+
+        String recentSql = "SELECT b.booking_id, "
+                         + "COALESCE(s.full_name, 'Unknown Student') AS student_name, "
+                         + "COALESCE(i.full_name, 'Unassigned Instructor') AS instructor_name, "
+                         + "COALESCE(v.model, 'Vehicle') AS veh_model, "
+                         + "COALESCE(v.transmission, 'Auto') AS veh_trans, "
+                         + "COALESCE(v.vehicle_number, '') AS veh_plate, "
+                         + "b.booking_date, b.start_time, b.end_time, b.status "
+                         + "FROM bookings b "
+                         + "LEFT JOIN students s ON b.student_id = s.student_id "
+                         + "LEFT JOIN instructors i ON b.instructor_id = i.instructor_id "
+                         + "LEFT JOIN vehicles v ON b.vehicle_id = v.vehicle_id "
+                         + "ORDER BY b.booking_id DESC LIMIT 10";
+
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(recentSql)) {
+            while (rs.next()) {
+                Vector<Object> row = new Vector<>();
+                int bId = rs.getInt("booking_id");
+                row.add(String.format("#BK-%04d", bId));
+                row.add(rs.getString("student_name"));
+                row.add(rs.getString("instructor_name"));
+
+                String model = rs.getString("veh_model");
+                String trans = rs.getString("veh_trans");
+                String plate = rs.getString("veh_plate");
+                String vehDisplay = (model != null && !model.isEmpty()) ? model : "Vehicle";
+                if (trans != null && !trans.isEmpty()) {
+                    vehDisplay += " (" + trans + ")";
+                }
+                if (plate != null && !plate.isEmpty()) {
+                    vehDisplay += " [" + plate + "]";
+                }
+                row.add(vehDisplay);
+
+                String date = rs.getString("booking_date");
+                String startTime = rs.getString("start_time");
+                String endTime = rs.getString("end_time");
+                String slotFormatted = formatTimeSlot(startTime, endTime);
+                String dt = (date != null ? date : "") + (slotFormatted.equals("Scheduled Slot") ? "" : ", " + slotFormatted);
+                row.add(dt.isEmpty() ? "Scheduled Slot" : dt);
+
+                row.add("Practical Driving");
+                String stVal = rs.getString("status");
+                row.add(stVal != null ? stVal : "Booked");
+
+                dtm.addRow(row);
+            }
+        } catch (SQLException ex) {
+            logger.log(Level.WARNING, "Failed to load recent bookings for dashboard", ex);
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -5010,7 +6907,7 @@ public class Dashbord extends javax.swing.JFrame {
                 }
             }
         } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -5057,6 +6954,7 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JButton btnInstUpdate;
     private javax.swing.JButton btnInstructors;
     private javax.swing.JButton btnResetStudent;
+    private javax.swing.JButton btnResetUser;
     private javax.swing.JButton btnSearchStudent;
     private javax.swing.JButton btnStudent;
     private javax.swing.JButton btnUpdateStudent;
@@ -5384,6 +7282,7 @@ public class Dashbord extends javax.swing.JFrame {
         btnUpdateUser.setVisible(false);
         btnDeleteUser.setVisible(false);
         btnClearUser.setVisible(false);
+        btnResetUser.setVisible(false);
         btnUpdateStudent.setVisible(false);
         btnDeleteStudent.setVisible(false);
         btnClearStudent.setVisible(false);
@@ -5396,5 +7295,13 @@ public class Dashbord extends javax.swing.JFrame {
         btnVehDelete.setVisible(false);
         btnVehClear.setVisible(false);
         btnVehAdd.setVisible(true);
+        btnBkUpdate.setVisible(false);
+        btnBkDelete.setVisible(false);
+        btnBkClear.setVisible(false);
+        btnBkAdd.setVisible(true);
+        btnBmConfirm.setVisible(false);
+        btnBmReschedule.setVisible(false);
+        btnBmCancel.setVisible(false);
+        btnBmClear.setVisible(false);
     }
 }

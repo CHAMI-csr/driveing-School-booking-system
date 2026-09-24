@@ -23,7 +23,7 @@ import javax.swing.JOptionPane;
  */
 public class changeDefaultPassword extends javax.swing.JFrame {
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(changeDefaultPassword.class.getName());
+    private static final Logger logger = Logger.getLogger(changeDefaultPassword.class.getName());
     private String currentUsername;
     private String currentRole;
     private Connection con;
@@ -430,7 +430,7 @@ public class changeDefaultPassword extends javax.swing.JFrame {
                 }
             }
         } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
