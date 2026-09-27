@@ -33,6 +33,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.table.DefaultTableModel;
+import com.toedter.calendar.JDateChooser;
 
 /**
  *
@@ -1040,7 +1041,7 @@ public class Dashbord extends javax.swing.JFrame {
         lblBkLessonType = new javax.swing.JLabel();
         cmbBkLessonType = new javax.swing.JComboBox<>();
         lblBkDateTime = new javax.swing.JLabel();
-        txtBkDateTime = new javax.swing.JTextField();
+        txtBkDateTime = new com.toedter.calendar.JDateChooser();
         lblBkStatus = new javax.swing.JLabel();
         cmbBkStatus = new javax.swing.JComboBox<>();
         lblBkPayment = new javax.swing.JLabel();
@@ -1093,7 +1094,7 @@ public class Dashbord extends javax.swing.JFrame {
         lblBmVehicle = new javax.swing.JLabel();
         cmbBmVehicle = new javax.swing.JComboBox<>();
         lblBmDate = new javax.swing.JLabel();
-        txtBmDate = new javax.swing.JTextField();
+        txtBmDate = new com.toedter.calendar.JDateChooser();
         lblBmTimeSlot = new javax.swing.JLabel();
         cmbBmTimeSlot = new javax.swing.JComboBox<>();
         lblBmStatus = new javax.swing.JLabel();
@@ -1533,11 +1534,11 @@ public class Dashbord extends javax.swing.JFrame {
 
         lblRecentTitle.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
         lblRecentTitle.setForeground(new java.awt.Color(15, 23, 42));
-        lblRecentTitle.setText("Recent Practical Bookings");
+        lblRecentTitle.setText("Today's Practical Bookings");
         panelRecentTitles.add(lblRecentTitle);
 
         lblRecentSub.setForeground(new java.awt.Color(100, 116, 139));
-        lblRecentSub.setText("Latest student driving sessions and instructor assignments");
+        lblRecentSub.setText("Today's student sessions — Click any row to manage or reschedule");
         panelRecentTitles.add(lblRecentSub);
 
         panelRecentHeader.add(panelRecentTitles, java.awt.BorderLayout.LINE_START);
@@ -1575,6 +1576,13 @@ public class Dashbord extends javax.swing.JFrame {
         });
         tableRecentBookings.setRowHeight(36);
         tableRecentBookings.setShowGrid(false);
+        tableRecentBookings.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        tableRecentBookings.setToolTipText("Click any row to manage or reschedule this booking");
+        tableRecentBookings.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tableRecentBookingsMouseClicked(evt);
+            }
+        });
         scrollRecentBookings.setViewportView(tableRecentBookings);
 
         panelRecentBookings.add(scrollRecentBookings, java.awt.BorderLayout.CENTER);
@@ -2972,8 +2980,8 @@ public class Dashbord extends javax.swing.JFrame {
         lblBkDateTime.setText("Date & Time Slot *");
         panelBkFormFields.add(lblBkDateTime);
 
+        txtBkDateTime.setDateFormatString("yyyy-MM-dd");
         txtBkDateTime.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        txtBkDateTime.setText("Tomorrow, 09:30 AM");
         panelBkFormFields.add(txtBkDateTime);
 
         lblBkStatus.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -3296,8 +3304,8 @@ public class Dashbord extends javax.swing.JFrame {
         lblBmDate.setText("Session Date");
         panelBmFormFields.add(lblBmDate);
 
+        txtBmDate.setDateFormatString("yyyy-MM-dd");
         txtBmDate.setFont(new java.awt.Font("Segoe UI", 0, 13)); // NOI18N
-        txtBmDate.setText("2026-09-23");
         panelBmFormFields.add(txtBmDate);
 
         lblBmTimeSlot.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -3476,6 +3484,37 @@ public class Dashbord extends javax.swing.JFrame {
         loadBookingTable();
         switchCard("cardBookings");
     }//GEN-LAST:event_btnViewAllBookingsActionPerformed
+
+    private void tableRecentBookingsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableRecentBookingsMouseClicked
+        int row = tableRecentBookings.getSelectedRow();
+        if (row >= 0) {
+            String bIdStr = String.valueOf(tableRecentBookings.getValueAt(row, 0));
+            int targetId = -1;
+            try {
+                targetId = Integer.parseInt(bIdStr.replaceAll("[^0-9]", ""));
+            } catch (Exception ignored) {}
+
+            loadBookingManagementDropdowns();
+            loadBookingManagementTable();
+            switchCard("cardBookingManagement");
+
+            if (targetId != -1) {
+                for (int i = 0; i < tableBookingManagement.getRowCount(); i++) {
+                    String curIdStr = String.valueOf(tableBookingManagement.getValueAt(i, 0));
+                    int curId = -1;
+                    try {
+                        curId = Integer.parseInt(curIdStr.replaceAll("[^0-9]", ""));
+                    } catch (Exception ignored) {}
+                    if (curId == targetId) {
+                        tableBookingManagement.setRowSelectionInterval(i, i);
+                        tableBookingManagement.scrollRectToVisible(tableBookingManagement.getCellRect(i, 0, true));
+                        loadSelectedManagementBookingToForm();
+                        break;
+                    }
+                }
+            }
+        }
+    }//GEN-LAST:event_tableRecentBookingsMouseClicked
 
     private void btnStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStudentActionPerformed
         switchCard("cardStudents");
@@ -5226,10 +5265,16 @@ public class Dashbord extends javax.swing.JFrame {
             loadBookingTable(kw, st);
         });
 
+        // Default date chooser to today
+        if (txtBkDateTime != null) {
+            txtBkDateTime.setDate(new java.util.Date());
+        }
+
         loadBookingDropdowns();
         LoadBookingTable();
         clearBookingForm();
     }
+
 
     private void btnBkAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBkAddActionPerformed
         // ==========================================
@@ -5240,7 +5285,6 @@ public class Dashbord extends javax.swing.JFrame {
         String instructor = (cmbBkInstructor.getSelectedItem() != null) ? cmbBkInstructor.getSelectedItem().toString().trim() : "";
         String vehicle = (cmbBkVehicle.getSelectedItem() != null) ? cmbBkVehicle.getSelectedItem().toString().trim() : "";
         String lessonType = (cmbBkLessonType.getSelectedItem() != null) ? cmbBkLessonType.getSelectedItem().toString().trim() : "";
-        String dateTime = txtBkDateTime.getText().trim();
         String status = (cmbBkStatus.getSelectedItem() != null) ? cmbBkStatus.getSelectedItem().toString().trim() : "";
         String payment = (cmbBkPayment.getSelectedItem() != null) ? cmbBkPayment.getSelectedItem().toString().trim() : "";
 
@@ -5274,14 +5318,9 @@ public class Dashbord extends javax.swing.JFrame {
             lessonType = "Standard Practical"; // Default fallback
         }
 
-        // 5. Validate Date & Time Slot
-        if (dateTime.isEmpty() || dateTime.equalsIgnoreCase("Select Date & Time")) {
-            JOptionPane.showMessageDialog(this, "Please enter or select Date & Time Slot!", "Validation Error", JOptionPane.WARNING_MESSAGE);
-            txtBkDateTime.requestFocus();
-            return;
-        }
-        if (dateTime.length() < 4) {
-            JOptionPane.showMessageDialog(this, "Date & Time Slot is too short! Please enter a valid date and time.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        // 5. Validate Date
+        if (txtBkDateTime.getDate() == null) {
+            JOptionPane.showMessageDialog(this, "Please select a booking date!", "Validation Error", JOptionPane.WARNING_MESSAGE);
             txtBkDateTime.requestFocus();
             return;
         }
@@ -5293,6 +5332,7 @@ public class Dashbord extends javax.swing.JFrame {
         if (payment.isEmpty() || payment.startsWith("--")) {
             payment = "Pending";
         }
+
 
         // ==========================================
         // STEP 3: Database Connection & ID Lookups
@@ -5397,41 +5437,14 @@ public class Dashbord extends javax.swing.JFrame {
             }
 
             // ==========================================
-            // STEP 4: Parse Date & Time
+            // STEP 4: Get Date & Time from JDateChooser
             // ==========================================
-            LocalDate bookingDate = LocalDate.now();
+            LocalDate bookingDate = txtBkDateTime.getDate().toInstant()
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+
             LocalTime startTime = LocalTime.of(10, 0, 0);
-            LocalTime endTime = LocalTime.of(11, 0, 0);
+            LocalTime endTime   = LocalTime.of(11, 0, 0);
 
-            String dtLower = dateTime.toLowerCase();
-            if (dtLower.contains("tomorrow")) {
-                bookingDate = LocalDate.now().plusDays(1);
-            } else {
-                Matcher dm = Pattern.compile("\\b(\\d{4}-\\d{2}-\\d{2})\\b").matcher(dateTime);
-                if (dm.find()) {
-                    try {
-                        bookingDate = LocalDate.parse(dm.group(1));
-                    } catch (Exception ignored) {}
-                }
-            }
-
-            Matcher tm = Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(am|pm)?", Pattern.CASE_INSENSITIVE).matcher(dateTime);
-            if (tm.find()) {
-                int hour = Integer.parseInt(tm.group(1));
-                int min = Integer.parseInt(tm.group(2));
-                String ampm = tm.group(3);
-                if (ampm != null) {
-                    if (ampm.equalsIgnoreCase("pm") && hour < 12) {
-                        hour += 12;
-                    } else if (ampm.equalsIgnoreCase("am") && hour == 12) {
-                        hour = 0;
-                    }
-                }
-                if (hour >= 0 && hour <= 23 && min >= 0 && min <= 59) {
-                    startTime = LocalTime.of(hour, min, 0);
-                    endTime = startTime.plusHours(1);
-                }
-            }
 
             // ==========================================
             // STEP 5: INSERT Into 'bookings' Database Table
@@ -5590,7 +5603,6 @@ public class Dashbord extends javax.swing.JFrame {
         String student = (txtBkStudent.getSelectedItem() != null) ? txtBkStudent.getSelectedItem().toString().trim() : "";
         String instructor = (cmbBkInstructor.getSelectedItem() != null) ? cmbBkInstructor.getSelectedItem().toString().trim() : "";
         String vehicle = (cmbBkVehicle.getSelectedItem() != null) ? cmbBkVehicle.getSelectedItem().toString().trim() : "";
-        String dateTime = txtBkDateTime.getText().trim();
         String status = (cmbBkStatus.getSelectedItem() != null) ? cmbBkStatus.getSelectedItem().toString().trim() : "Pending";
 
         // 3. Validations
@@ -5609,11 +5621,12 @@ public class Dashbord extends javax.swing.JFrame {
             cmbBkVehicle.requestFocus();
             return;
         }
-        if (dateTime.isEmpty() || dateTime.equalsIgnoreCase("Select Date & Time")) {
-            JOptionPane.showMessageDialog(this, "Please enter Date & Time Slot!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        if (txtBkDateTime.getDate() == null) {
+            JOptionPane.showMessageDialog(this, "Please select a booking date!", "Validation Error", JOptionPane.WARNING_MESSAGE);
             txtBkDateTime.requestFocus();
             return;
         }
+
 
         // 4. Connect to Database & Lookup Foreign Keys
         Connection conn = getConnection();
@@ -5686,36 +5699,13 @@ public class Dashbord extends javax.swing.JFrame {
                 return;
             }
 
-            // 5. Parse Date & Time
-            LocalDate bookingDate = LocalDate.now();
+            // 5. Get Date & Time from JDateChooser
+            LocalDate bookingDate = txtBkDateTime.getDate().toInstant()
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+
             LocalTime startTime = LocalTime.of(10, 0, 0);
-            LocalTime endTime = LocalTime.of(11, 0, 0);
+            LocalTime endTime   = LocalTime.of(11, 0, 0);
 
-            if (dateTime.toLowerCase().contains("tomorrow")) {
-                bookingDate = LocalDate.now().plusDays(1);
-            } else {
-                Matcher dm = Pattern.compile("\\b(\\d{4}-\\d{2}-\\d{2})\\b").matcher(dateTime);
-                if (dm.find()) {
-                    try {
-                        bookingDate = LocalDate.parse(dm.group(1));
-                    } catch (Exception ignored) {}
-                }
-            }
-
-            Matcher tm = Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(am|pm)?", Pattern.CASE_INSENSITIVE).matcher(dateTime);
-            if (tm.find()) {
-                int hour = Integer.parseInt(tm.group(1));
-                int min = Integer.parseInt(tm.group(2));
-                String ampm = tm.group(3);
-                if (ampm != null) {
-                    if (ampm.equalsIgnoreCase("pm") && hour < 12) hour += 12;
-                    else if (ampm.equalsIgnoreCase("am") && hour == 12) hour = 0;
-                }
-                if (hour >= 0 && hour <= 23 && min >= 0 && min <= 59) {
-                    startTime = LocalTime.of(hour, min, 0);
-                    endTime = startTime.plusHours(1);
-                }
-            }
 
             // 6. Update database record
             String updateSql = "UPDATE bookings SET student_id = ?, instructor_id = ?, vehicle_id = ?, booking_date = ?, start_time = ?, end_time = ?, status = ? WHERE booking_id = ?";
@@ -5968,7 +5958,15 @@ public class Dashbord extends javax.swing.JFrame {
             }
 
             String dateTime = String.valueOf(tableBookings.getValueAt(row, 5));
-            txtBkDateTime.setText(dateTime);
+            if (txtBkDateTime != null && dateTime != null) {
+                Matcher dm = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})").matcher(dateTime);
+                if (dm.find()) {
+                    try {
+                        java.time.LocalDate ld = java.time.LocalDate.parse(dm.group(1));
+                        txtBkDateTime.setDate(java.sql.Date.valueOf(ld));
+                    } catch (Exception ignored) {}
+                }
+            }
 
             String status = String.valueOf(tableBookings.getValueAt(row, 6));
             for (int i = 0; i < cmbBkStatus.getItemCount(); i++) {
@@ -6032,7 +6030,9 @@ public class Dashbord extends javax.swing.JFrame {
         if (cmbBkLessonType.getItemCount() > 0) {
             cmbBkLessonType.setSelectedIndex(0);
         }
-        txtBkDateTime.setText("");
+        if (txtBkDateTime != null) {
+            txtBkDateTime.setDate(new java.util.Date());
+        }
         if (cmbBkStatus.getItemCount() > 0) {
             cmbBkStatus.setSelectedIndex(0);
         }
@@ -6122,7 +6122,6 @@ public class Dashbord extends javax.swing.JFrame {
 
         String instructor = (cmbBmInstructor.getSelectedItem() != null) ? cmbBmInstructor.getSelectedItem().toString().trim() : "";
         String vehicle = (cmbBmVehicle.getSelectedItem() != null) ? cmbBmVehicle.getSelectedItem().toString().trim() : "";
-        String dateStr = txtBmDate.getText().trim();
         String slotStr = (cmbBmTimeSlot.getSelectedItem() != null) ? cmbBmTimeSlot.getSelectedItem().toString().trim() : "";
         String status = (cmbBmStatus.getSelectedItem() != null) ? cmbBmStatus.getSelectedItem().toString().trim() : "Rescheduled";
 
@@ -6136,8 +6135,8 @@ public class Dashbord extends javax.swing.JFrame {
             cmbBmVehicle.requestFocus();
             return;
         }
-        if (dateStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter session date (YYYY-MM-DD)!", "Validation Error", JOptionPane.WARNING_MESSAGE);
+        if (txtBmDate.getDate() == null) {
+            JOptionPane.showMessageDialog(this, "Please select session date!", "Validation Error", JOptionPane.WARNING_MESSAGE);
             txtBmDate.requestFocus();
             return;
         }
@@ -6209,45 +6208,17 @@ public class Dashbord extends javax.swing.JFrame {
                 return;
             }
 
-            // Parse Date
-            LocalDate bookingDate = LocalDate.now();
-            try {
-                bookingDate = LocalDate.parse(dateStr);
-            } catch (Exception ex) {
-                Matcher dm = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})").matcher(dateStr);
-                if (dm.find()) {
-                    try {
-                        bookingDate = LocalDate.parse(dm.group(1));
-                    } catch (Exception ignored) {}
-                }
-            }
+            // Parse Date from JDateChooser
+            LocalDate bookingDate = txtBmDate.getDate().toInstant()
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
 
             // Parse Time Slot
             LocalTime startTime = LocalTime.of(9, 0, 0);
-            LocalTime endTime = LocalTime.of(10, 0, 0);
-            Pattern timePat = Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(AM|PM)?", Pattern.CASE_INSENSITIVE);
-            Matcher matcher = timePat.matcher(slotStr);
-            if (matcher.find()) {
-                int h1 = Integer.parseInt(matcher.group(1));
-                int m1 = Integer.parseInt(matcher.group(2));
-                String ap1 = matcher.group(3);
-                if (ap1 != null) {
-                    if (ap1.equalsIgnoreCase("PM") && h1 < 12) h1 += 12;
-                    else if (ap1.equalsIgnoreCase("AM") && h1 == 12) h1 = 0;
-                }
-                startTime = LocalTime.of(h1, m1, 0);
-                endTime = startTime.plusHours(1);
-
-                if (matcher.find()) {
-                    int h2 = Integer.parseInt(matcher.group(1));
-                    int m2 = Integer.parseInt(matcher.group(2));
-                    String ap2 = matcher.group(3);
-                    if (ap2 != null) {
-                        if (ap2.equalsIgnoreCase("PM") && h2 < 12) h2 += 12;
-                        else if (ap2.equalsIgnoreCase("AM") && h2 == 12) h2 = 0;
-                    }
-                    endTime = LocalTime.of(h2, m2, 0);
-                }
+            LocalTime endTime   = LocalTime.of(10, 0, 0);
+            LocalTime[] times = parseTimeSlot(slotStr);
+            if (times != null) {
+                startTime = times[0];
+                endTime   = times[1];
             }
 
             // If user did not change status from Pending, set to Rescheduled
@@ -6569,6 +6540,48 @@ public class Dashbord extends javax.swing.JFrame {
     }
 
     /**
+     * Parses a 12-hr time slot string (e.g. "09:00 AM - 10:00 AM") into LocalTime start and end array
+     */
+    private java.time.LocalTime[] parseTimeSlot(String slotStr) {
+        if (slotStr == null || slotStr.trim().isEmpty() || slotStr.startsWith("--")) {
+            return null;
+        }
+        try {
+            java.time.LocalTime start = java.time.LocalTime.of(9, 0);
+            java.time.LocalTime end = java.time.LocalTime.of(10, 0);
+            Pattern timePat = Pattern.compile("(\\d{1,2}):(\\d{2})\\s*(AM|PM)?", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = timePat.matcher(slotStr);
+            if (matcher.find()) {
+                int h1 = Integer.parseInt(matcher.group(1));
+                int m1 = Integer.parseInt(matcher.group(2));
+                String ap1 = matcher.group(3);
+                if (ap1 != null) {
+                    if (ap1.equalsIgnoreCase("PM") && h1 < 12) h1 += 12;
+                    else if (ap1.equalsIgnoreCase("AM") && h1 == 12) h1 = 0;
+                }
+                start = java.time.LocalTime.of(h1, m1, 0);
+                end = start.plusHours(1);
+
+                if (matcher.find()) {
+                    int h2 = Integer.parseInt(matcher.group(1));
+                    int m2 = Integer.parseInt(matcher.group(2));
+                    String ap2 = matcher.group(3);
+                    if (ap2 != null) {
+                        if (ap2.equalsIgnoreCase("PM") && h2 < 12) h2 += 12;
+                        else if (ap2.equalsIgnoreCase("AM") && h2 == 12) h2 = 0;
+                    }
+                    end = java.time.LocalTime.of(h2, m2, 0);
+                }
+            }
+            return new java.time.LocalTime[]{start, end};
+        } catch (Exception ex) {
+            logger.log(Level.WARNING, "Error parsing time slot: " + slotStr, ex);
+            return null;
+        }
+    }
+
+
+    /**
      * Populates form fields with the selected row data in tableBookingManagement
      */
     public void loadSelectedManagementBookingToForm() {
@@ -6599,7 +6612,15 @@ public class Dashbord extends javax.swing.JFrame {
             }
 
             String date = String.valueOf(tableBookingManagement.getValueAt(row, 4));
-            txtBmDate.setText(date);
+            if (txtBmDate != null && date != null) {
+                Matcher dm = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})").matcher(date);
+                if (dm.find()) {
+                    try {
+                        LocalDate ld = LocalDate.parse(dm.group(1));
+                        txtBmDate.setDate(Date.valueOf(ld));
+                    } catch (Exception ignored) {}
+                }
+            }
 
             String timeSlot = String.valueOf(tableBookingManagement.getValueAt(row, 5));
             boolean matchedSlot = false;
@@ -6653,7 +6674,9 @@ public class Dashbord extends javax.swing.JFrame {
         if (cmbBmVehicle.getItemCount() > 0) {
             cmbBmVehicle.setSelectedIndex(0);
         }
-        txtBmDate.setText(LocalDate.now().toString());
+        if (txtBmDate != null) {
+            txtBmDate.setDate(new java.util.Date());
+        }
         if (cmbBmTimeSlot.getItemCount() > 0) {
             cmbBmTimeSlot.setSelectedIndex(0);
         }
@@ -6835,24 +6858,25 @@ public class Dashbord extends javax.swing.JFrame {
             logger.log(Level.WARNING, "Failed to load dashboard vehicle stats", ex);
         }
 
-        // 6. Recent Practical Bookings Table (Latest 10)
+        // 6. Today's Practical Bookings Table (with smart fallback to upcoming/recent)
         DefaultTableModel dtm = (DefaultTableModel) tableRecentBookings.getModel();
         dtm.setRowCount(0);
 
-        String recentSql = "SELECT b.booking_id, "
-                         + "COALESCE(s.full_name, 'Unknown Student') AS student_name, "
-                         + "COALESCE(i.full_name, 'Unassigned Instructor') AS instructor_name, "
-                         + "COALESCE(v.model, 'Vehicle') AS veh_model, "
-                         + "COALESCE(v.transmission, 'Auto') AS veh_trans, "
-                         + "COALESCE(v.vehicle_number, '') AS veh_plate, "
-                         + "b.booking_date, b.start_time, b.end_time, b.status "
-                         + "FROM bookings b "
-                         + "LEFT JOIN students s ON b.student_id = s.student_id "
-                         + "LEFT JOIN instructors i ON b.instructor_id = i.instructor_id "
-                         + "LEFT JOIN vehicles v ON b.vehicle_id = v.vehicle_id "
-                         + "ORDER BY b.booking_id DESC LIMIT 10";
+        String todaySql = "SELECT b.booking_id, "
+                        + "COALESCE(s.full_name, 'Unknown Student') AS student_name, "
+                        + "COALESCE(i.full_name, 'Unassigned Instructor') AS instructor_name, "
+                        + "COALESCE(v.model, 'Vehicle') AS veh_model, "
+                        + "COALESCE(v.transmission, 'Auto') AS veh_trans, "
+                        + "COALESCE(v.vehicle_number, '') AS veh_plate, "
+                        + "b.booking_date, b.start_time, b.end_time, b.status "
+                        + "FROM bookings b "
+                        + "LEFT JOIN students s ON b.student_id = s.student_id "
+                        + "LEFT JOIN instructors i ON b.instructor_id = i.instructor_id "
+                        + "LEFT JOIN vehicles v ON b.vehicle_id = v.vehicle_id "
+                        + "WHERE b.booking_date = CURDATE() "
+                        + "ORDER BY b.start_time ASC, b.booking_id ASC";
 
-        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(recentSql)) {
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(todaySql)) {
             while (rs.next()) {
                 Vector<Object> row = new Vector<>();
                 int bId = rs.getInt("booking_id");
@@ -6886,7 +6910,63 @@ public class Dashbord extends javax.swing.JFrame {
                 dtm.addRow(row);
             }
         } catch (SQLException ex) {
-            logger.log(Level.WARNING, "Failed to load recent bookings for dashboard", ex);
+            logger.log(Level.WARNING, "Failed to load today's bookings for dashboard", ex);
+        }
+
+        // Fallback: If no sessions scheduled for today, show recent & upcoming bookings so the table is never blank
+        if (dtm.getRowCount() == 0) {
+            lblRecentSub.setText("No sessions scheduled for today — Showing recent & upcoming bookings (Click to manage)");
+            String fallbackSql = "SELECT b.booking_id, "
+                               + "COALESCE(s.full_name, 'Unknown Student') AS student_name, "
+                               + "COALESCE(i.full_name, 'Unassigned Instructor') AS instructor_name, "
+                               + "COALESCE(v.model, 'Vehicle') AS veh_model, "
+                               + "COALESCE(v.transmission, 'Auto') AS veh_trans, "
+                               + "COALESCE(v.vehicle_number, '') AS veh_plate, "
+                               + "b.booking_date, b.start_time, b.end_time, b.status "
+                               + "FROM bookings b "
+                               + "LEFT JOIN students s ON b.student_id = s.student_id "
+                               + "LEFT JOIN instructors i ON b.instructor_id = i.instructor_id "
+                               + "LEFT JOIN vehicles v ON b.vehicle_id = v.vehicle_id "
+                               + "ORDER BY b.booking_date DESC, b.start_time ASC LIMIT 10";
+
+            try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(fallbackSql)) {
+                while (rs.next()) {
+                    Vector<Object> row = new Vector<>();
+                    int bId = rs.getInt("booking_id");
+                    row.add(String.format("#BK-%04d", bId));
+                    row.add(rs.getString("student_name"));
+                    row.add(rs.getString("instructor_name"));
+
+                    String model = rs.getString("veh_model");
+                    String trans = rs.getString("veh_trans");
+                    String plate = rs.getString("veh_plate");
+                    String vehDisplay = (model != null && !model.isEmpty()) ? model : "Vehicle";
+                    if (trans != null && !trans.isEmpty()) {
+                        vehDisplay += " (" + trans + ")";
+                    }
+                    if (plate != null && !plate.isEmpty()) {
+                        vehDisplay += " [" + plate + "]";
+                    }
+                    row.add(vehDisplay);
+
+                    String date = rs.getString("booking_date");
+                    String startTime = rs.getString("start_time");
+                    String endTime = rs.getString("end_time");
+                    String slotFormatted = formatTimeSlot(startTime, endTime);
+                    String dt = (date != null ? date : "") + (slotFormatted.equals("Scheduled Slot") ? "" : ", " + slotFormatted);
+                    row.add(dt.isEmpty() ? "Scheduled Slot" : dt);
+
+                    row.add("Practical Driving");
+                    String stVal = rs.getString("status");
+                    row.add(stVal != null ? stVal : "Booked");
+
+                    dtm.addRow(row);
+                }
+            } catch (SQLException ex) {
+                logger.log(Level.WARNING, "Failed to load fallback bookings for dashboard", ex);
+            }
+        } else {
+            lblRecentSub.setText("Today's student sessions — Click any row to manage or reschedule (" + dtm.getRowCount() + " today)");
         }
     }
 
@@ -7250,11 +7330,11 @@ public class Dashbord extends javax.swing.JFrame {
     private javax.swing.JTable tableRecentBookings;
     private javax.swing.JTable tableStudents;
     private javax.swing.JTable tableVehicles;
-    private javax.swing.JTextField txtBkDateTime;
+    private com.toedter.calendar.JDateChooser txtBkDateTime;
     private javax.swing.JTextField txtBkId;
     private javax.swing.JTextField txtBkSearch;
     private javax.swing.JComboBox<String> txtBkStudent;
-    private javax.swing.JTextField txtBmDate;
+    private com.toedter.calendar.JDateChooser txtBmDate;
     private javax.swing.JTextField txtBmId;
     private javax.swing.JTextField txtBmRemarks;
     private javax.swing.JTextField txtBmSearch;

@@ -1216,7 +1216,7 @@
                                     <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                                       <Color blue="2a" green="17" red="f" type="rgb"/>
                                     </Property>
-                                    <Property name="text" type="java.lang.String" value="Recent Practical Bookings"/>
+                                    <Property name="text" type="java.lang.String" value="Today&apos;s Practical Bookings"/>
                                   </Properties>
                                 </Component>
                                 <Component class="javax.swing.JLabel" name="lblRecentSub">
@@ -1224,7 +1224,7 @@
                                     <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                                       <Color blue="8b" green="74" red="64" type="rgb"/>
                                     </Property>
-                                    <Property name="text" type="java.lang.String" value="Latest student driving sessions and instructor assignments"/>
+                                    <Property name="text" type="java.lang.String" value="Today&apos;s student sessions &#x2014; Click any row to manage or reschedule"/>
                                   </Properties>
                                 </Component>
                               </SubComponents>
@@ -1293,6 +1293,9 @@
                                 <Property name="rowHeight" type="int" value="36"/>
                                 <Property name="showGrid" type="boolean" value="false"/>
                               </Properties>
+                              <Events>
+                                <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="tableRecentBookingsMouseClicked"/>
+                              </Events>
                             </Component>
                           </SubComponents>
                         </Container>
@@ -4980,12 +4983,12 @@
                                     <Property name="text" type="java.lang.String" value="Date &amp; Time Slot *"/>
                                   </Properties>
                                 </Component>
-                                <Component class="javax.swing.JTextField" name="txtBkDateTime">
+                                <Component class="com.toedter.calendar.JDateChooser" name="txtBkDateTime">
                                   <Properties>
+                                    <Property name="dateFormatString" type="java.lang.String" value="yyyy-MM-dd"/>
                                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                                       <Font name="Segoe UI" size="13" style="0"/>
                                     </Property>
-                                    <Property name="text" type="java.lang.String" value="Tomorrow, 09:30 AM"/>
                                   </Properties>
                                 </Component>
                                 <Component class="javax.swing.JLabel" name="lblBkStatus">
@@ -5890,12 +5893,12 @@
                                     <Property name="text" type="java.lang.String" value="Session Date"/>
                                   </Properties>
                                 </Component>
-                                <Component class="javax.swing.JTextField" name="txtBmDate">
+                                <Component class="com.toedter.calendar.JDateChooser" name="txtBmDate">
                                   <Properties>
+                                    <Property name="dateFormatString" type="java.lang.String" value="yyyy-MM-dd"/>
                                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                                       <Font name="Segoe UI" size="13" style="0"/>
                                     </Property>
-                                    <Property name="text" type="java.lang.String" value="2026-09-23"/>
                                   </Properties>
                                 </Component>
                                 <Component class="javax.swing.JLabel" name="lblBmTimeSlot">
